@@ -3,399 +3,418 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multiplication Quiz: 7 Times Table</title>
+    <title>Multiplication Quiz (x7)</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@700&display=swap" rel="stylesheet"> <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
-        /* Use Inter font, with Comic Neue for headings */
+        /* Custom styles (identical to the previous games) */
         body {
-            font-family: 'Inter', sans-serif;
-            background-image: radial-gradient(circle, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
-            background-size: 15px 15px;
-        }
-        h1, h2 {
-             font-family: 'Comic Neue', cursive; /* Fun font for headers */
-        }
-        input:disabled {
-            background-color: #f3f4f6;
-            cursor: not-allowed;
-        }
-        button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-        .question-item {
+            font-family: 'Press Start 2P', cursive;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             display: flex;
+            justify-content: center;
             align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 0.75rem;
-            padding: 0.25rem; /* Add padding for flash effect */
-            border-radius: 0.375rem; /* Rounded corners for flash effect */
-            transition: background-color 0.3s ease; /* Smooth transition */
+            min-height: 100vh;
+            color: #fff;
+            text-shadow: 2px 2px #333;
         }
-        .question-text {
-            width: 80px;
-            text-align: right;
-            font-weight: 500;
+        .game-container {
+            background-color: rgba(0, 0, 0, 0.6);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+            text-align: center;
+            border: 4px solid #fff;
+            max-width: 90%;
+            width: 500px;
         }
-        .answer-input {
-            flex-grow: 1;
-            max-width: 100px;
+        button {
+            font-family: 'Press Start 2P', cursive;
+            background-color: #ff6347; /* Tomato */
+            color: white;
+            padding: 15px 25px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin: 10px 5px;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px #d9534f;
+            text-shadow: 1px 1px #333;
+            min-width: 100px;
         }
-        .feedback-icon {
-            width: 24px;
-            height: 24px;
-           visibility: hidden; /* Keep hidden initially */
-           opacity: 0; /* Start fully transparent */
-           transition: opacity 0.3s ease-in-out; /* Fade in */
+        button:hover {
+            background-color: #ff482b;
+            transform: translateY(-2px);
+            box-shadow: 0 7px #d9534f;
         }
-         .feedback-icon.visible { /* Class to make icon visible */
-            visibility: visible;
-            opacity: 1;
+        button:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px #d9534f;
         }
-
-        #animation-container {
-            position: fixed;
-            top: 0;
-            left: 0;
+        #start-button, #restart-button {
+             background-color: #4CAF50; /* Green */
+             box-shadow: 0 5px #45a049;
+        }
+        #start-button:hover, #restart-button:hover {
+            background-color: #45a049;
+            box-shadow: 0 7px #45a049;
+        }
+         #start-button:active, #restart-button:active {
+            box-shadow: 0 2px #45a049;
+        }
+        .answer-options button {
+            background-color: #1e90ff; /* Dodger Blue */
+            box-shadow: 0 5px #1c86ee;
+        }
+        .answer-options button:hover {
+            background-color: #1c86ee;
+            box-shadow: 0 7px #1c86ee;
+        }
+        .answer-options button:active {
+            box-shadow: 0 2px #1c86ee;
+        }
+        #feedback {
+            font-size: 2rem;
+            height: 40px;
+            margin-top: 15px;
+            margin-bottom: 15px;
+        }
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+        }
+        #celebration-canvas {
+            display: none;
+            background-color: rgba(0, 0, 0, 0.7);
+            border-radius: 15px;
+            margin-top: 20px;
             width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 1000;
+            height: 300px;
+            border: 2px solid #fff;
+        }
+        .insta-link {
+            margin-top: 25px;
+            font-size: 0.8rem;
+        }
+        .insta-link a {
+            color: #ffeb3b; /* Yellow link */
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        .insta-link a:hover {
+            color: #fff;
+            text-decoration: underline;
+        }
+        .hidden {
             display: none;
         }
-        .lottie-animation {
-            width: 100%;
-            height: 100%;
-        }
-
-        /* --- Animations --- */
-        @keyframes flashCorrect {
-            0%, 100% { background-color: transparent; }
-            50% { background-color: rgba(74, 222, 128, 0.6); } /* Lighter green flash */
-        }
-        .flash-correct {
-            animation: flashCorrect 0.6s ease-in-out;
-        }
-
-        @keyframes shakeIncorrect {
-            0%, 100% { transform: translateX(0); }
-            10%, 30%, 50%, 70%, 90% { transform: translateX(-6px); }
-            20%, 40%, 60%, 80% { transform: translateX(6px); }
-        }
-        .shake-incorrect {
-            animation: shakeIncorrect 0.5s ease-in-out;
-            background-color: rgba(239, 68, 68, 0.3); /* Light red background during shake */
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-        .pulse-animation {
-             animation: pulse 2s infinite ease-in-out;
-        }
-
-
     </style>
 </head>
-  <body class="bg-gradient-to-br from-yellow-100 via-pink-100 to-sky-200 min-h-screen flex items-center justify-center p-4">
+<body>
+    <div class="game-container">
+        <h1 class="text-3xl font-bold mb-6">Times Table Quiz (x7)</h1>
 
-    <div class="bg-white rounded-xl shadow-lg p-6 md:p-8 w-full max-w-lg text-center">
-        <div class="flex justify-center mb-4">
-             <lottie-player src="https://lottie.host/2f5b8f8f-1f1d-4f1e-8f0a-7c4c8e8e7f7f/s7a5f4e3d.json" background="transparent" speed="1" style="width: 80px; height: 80px;" loop autoplay></lottie-player>
-        </div>
-        <h1 class="text-2xl md:text-3xl font-bold text-purple-700 mb-2">7 Times Table Challenge!</h1>
-        <p class="text-gray-600 mb-4">Ready, Set, Multiply!</p>
-
-        <div class="mb-6 text-xl font-semibold text-indigo-600">
-             Time: <span id="timer" class="pulse-animation inline-block">00:00</span>
+        <div id="start-screen">
+            <p class="mb-4">Press Start to begin!</p>
+            <button id="start-button">Start Game</button>
         </div>
 
-        <div id="quiz-area">
-            <div id="questions-container" class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 mb-6">
+        <div id="game-screen" class="hidden">
+            <div class="stats">
+                <div id="score">Score: 0</div>
+                <div id="timer">Time: 0s</div>
+            </div>
+            <h2 id="question" class="text-2xl mb-4">7 x ? = ?</h2>
+            <div id="feedback"></div> <div id="answer-options" class="flex flex-wrap justify-center">
                 </div>
-
-             <button id="submit-btn" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 active:scale-100 mb-4">
-                Check My Answers!
-            </button>
         </div>
 
-        <div id="score-area" class="hidden border-t pt-6 mt-6">
-             <h2 class="text-2xl font-bold text-green-600 mb-3 flex items-center justify-center gap-2">
-                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="text-yellow-400"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                 Quiz Complete!
-                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="text-yellow-400"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-            </h2>
-            <p class="text-lg mb-2">Your score: <span id="final-score" class="font-bold text-xl text-blue-600">0</span> out of 12</p>
-            <p class="text-lg mb-4">Time Taken: <span id="final-time" class="font-bold">00:00</span></p>
-            <p id="score-message" class="text-gray-700 mb-6 font-medium text-lg"></p>
-             <button id="restart-btn" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 active:scale-100">
-                Play Again? Let's Go!
-            </button>
+        <div id="end-screen" class="hidden">
+            <h2 id="end-message" class="text-2xl mb-4">Congratulations!</h2>
+            <p id="final-time" class="mb-4">Your time: 0s</p>
+            <canvas id="celebration-canvas"></canvas>
+            <button id="restart-button" class="mt-4">Play Again?</button>
         </div>
-    </div>
 
-    <div id="animation-container">
-        <lottie-player
-            id="floating-animation"
-            class="lottie-animation"
-            src="https://lottie.host/b52f54e1-2d93-4959-8957-b958814a9915/r6v7Tj8rQS.json"
-            background="transparent"
-            speed="1"
-            loop
-            autoplay
-        ></lottie-player>
+        <div class="insta-link">
+            <p>Follow on Instagram:
+                <a href="https://www.instagram.com/saleh__zeer/" target="_blank" rel="noopener noreferrer">@saleh__zeer</a>
+            </p>
+        </div>
     </div>
 
     <script>
-        // --- DOM Elements ---
-        const questionsContainer = document.getElementById('questions-container');
-        const submitButton = document.getElementById('submit-btn');
+        // DOM Elements (identical structure)
+        const startScreen = document.getElementById('start-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const endScreen = document.getElementById('end-screen');
+        const startButton = document.getElementById('start-button');
+        const restartButton = document.getElementById('restart-button');
+        const questionElement = document.getElementById('question');
+        const answerOptionsElement = document.getElementById('answer-options');
+        const feedbackElement = document.getElementById('feedback');
+        const scoreElement = document.getElementById('score');
         const timerElement = document.getElementById('timer');
-        const quizArea = document.getElementById('quiz-area');
-        const scoreArea = document.getElementById('score-area');
-        const finalScoreElement = document.getElementById('final-score');
+        const endMessageElement = document.getElementById('end-message');
         const finalTimeElement = document.getElementById('final-time');
-        const scoreMessageElement = document.getElementById('score-message');
-        const restartButton = document.getElementById('restart-btn');
-        const animationContainer = document.getElementById('animation-container');
-        const floatingAnimation = document.getElementById('floating-animation');
+        const celebrationCanvas = document.getElementById('celebration-canvas');
+        const ctx = celebrationCanvas.getContext('2d');
 
-        // --- Quiz State ---
-        const factor = 7;
-        const maxMultiplier = 12;
+        // Game State (identical structure)
         let score = 0;
-        let timerInterval = null;
-        let secondsElapsed = 0;
-        let questions = []; // { multiplier, correctAnswer, inputElement, iconElement, itemDiv }
+        let questionNumber = 0;
+        const maxQuestions = 10; // Target score
+        let currentCorrectAnswer;
+        let timerInterval;
+        let startTime;
+        let gameActive = false;
+        let availableMultipliers = [];
 
-        // --- Sound Synthesis (Tone.js) ---
-        let soundsReady = false;
-        const correctSynth = new Tone.Synth({ oscillator: { type: 'sine' }, envelope: { attack: 0.01, decay: 0.1, sustain: 0.1, release: 0.2 } }).toDestination();
-        const incorrectSynth = new Tone.Synth({ oscillator: { type: 'square' }, envelope: { attack: 0.01, decay: 0.2, sustain: 0, release: 0.2 } }).toDestination();
-        const finishSynth = new Tone.Synth({ oscillator: { type: 'triangle' }, envelope: { attack: 0.05, decay: 0.2, sustain: 0.3, release: 0.5 } }).toDestination();
-        const perfectScoreSynth = new Tone.PolySynth(Tone.Synth, { oscillator: { type: "pwm", modulationFrequency: 0.2 }, envelope: { attack: 0.02, decay: 0.1, sustain: 0.3, release: 0.4 } }).toDestination();
+        // Sound Synthesis (Tone.js) - (identical setup)
+        let synth;
+        let correctSound, wrongSound;
 
+        function setupSounds() {
+            if (!synth) {
+                 synth = new Tone.Synth().toDestination();
+                 correctSound = () => {
+                     synth.triggerAttackRelease("C5", "8n", Tone.now());
+                 };
+                 wrongSound = () => {
+                     synth.triggerAttackRelease("C3", "8n", Tone.now());
+                 };
+            }
+        }
 
-        async function initializeAudio() {
-            if (Tone.context.state !== 'running') {
-                 try {
-                    await Tone.start();
-                    console.log('Audio Context started.');
-                    soundsReady = true;
-                 } catch (e) {
-                     console.error("Could not start Audio Context:", e);
-                     soundsReady = false; // Ensure it's false if Tone.start() fails
+        // --- Celebration Animation --- (identical implementation)
+        let animationFrameId;
+        let particles = [];
+        const particleTypes = ['🎈', '🗿', '✨', '🎉', '🌟']; // Emojis for particles
+
+        function createParticle() {
+            // Ensure canvas has valid dimensions before creating particles
+            if (celebrationCanvas.width <= 0 || celebrationCanvas.height <= 0) return;
+            const x = Math.random() * celebrationCanvas.width;
+            const y = celebrationCanvas.height + 20; // Start below canvas
+            const size = Math.random() * 15 + 15; // Size between 15 and 30
+            const speedY = Math.random() * 2 + 1; // Speed between 1 and 3
+            const type = particleTypes[Math.floor(Math.random() * particleTypes.length)];
+            particles.push({ x, y, size, speedY, type });
+        }
+
+        function animateCelebration() {
+             // Ensure canvas dimensions are set before drawing
+             if (celebrationCanvas.width !== celebrationCanvas.offsetWidth || celebrationCanvas.height !== celebrationCanvas.offsetHeight) {
+                celebrationCanvas.width = celebrationCanvas.offsetWidth;
+                celebrationCanvas.height = celebrationCanvas.offsetHeight;
+             }
+             // Prevent drawing if canvas is not visible or has no size
+             if (celebrationCanvas.width <= 0 || celebrationCanvas.height <= 0) {
+                 // Optionally reschedule if needed, or just stop
+                 if (gameActive === false && score === maxQuestions) {
+                    animationFrameId = requestAnimationFrame(animateCelebration);
                  }
-            } else {
-                soundsReady = true; // Already running
+                 return;
+             }
+
+
+            ctx.clearRect(0, 0, celebrationCanvas.width, celebrationCanvas.height);
+
+            // Add new particles occasionally
+            if (Math.random() < 0.1) {
+                createParticle();
+            }
+
+            // Update and draw particles
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.y -= p.speedY; // Move upwards
+                ctx.font = `${p.size}px Arial`; // Use Arial for broad emoji support
+                ctx.textAlign = 'center';
+                ctx.fillText(p.type, p.x, p.y);
+                // Remove particle if it goes off-screen
+                if (p.y < -p.size) {
+                    particles.splice(i, 1);
+                }
+            }
+
+            // Continue animation if game ended successfully
+            if (gameActive === false && score === maxQuestions) {
+                 animationFrameId = requestAnimationFrame(animateCelebration);
             }
         }
 
-        // --- Timer Functions ---
-        function formatTime(seconds) {
-            const minutes = Math.floor(seconds / 60);
-            const remainingSeconds = seconds % 60;
-            return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+         function stopCelebrationAnimation() {
+             if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
+             }
+             particles = [];
+             if (ctx && celebrationCanvas.width > 0 && celebrationCanvas.height > 0) { // Check if context exists and canvas has size before clearing
+                 ctx.clearRect(0, 0, celebrationCanvas.width, celebrationCanvas.height);
+             }
         }
 
-        function startTimer() {
-            stopTimer(); // Ensure no multiple intervals
-            secondsElapsed = 0;
-            timerElement.textContent = formatTime(secondsElapsed);
-            timerElement.classList.add('pulse-animation'); // Start pulsing
-            timerInterval = setInterval(() => {
-                secondsElapsed++;
-                timerElement.textContent = formatTime(secondsElapsed);
-            }, 1000);
+
+        // --- Game Logic ---
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]]; // Swap elements
+            }
         }
 
-        function stopTimer() {
-            clearInterval(timerInterval);
-            timerInterval = null;
-            timerElement.classList.remove('pulse-animation'); // Stop pulsing
+        function generateQuestion() {
+            if (availableMultipliers.length === 0) {
+                 endGame(true); // Should have enough questions
+                 return;
+            }
+
+            const randomIndex = Math.floor(Math.random() * availableMultipliers.length);
+            const multiplier = availableMultipliers.splice(randomIndex, 1)[0]; // Get and remove multiplier
+
+            // *** The main change: Use 7 instead of 6 ***
+            currentCorrectAnswer = 7 * multiplier;
+            questionElement.textContent = `7 x ${multiplier} = ?`;
+            // *** End of main change ***
+
+            // Generate answer options
+            const options = [currentCorrectAnswer];
+            while (options.length < 4) { // Generate 3 wrong options
+                // Generate wrong answers, ensuring they are positive and distinct
+                let wrongAnswerOffset = Math.floor(Math.random() * 11) - 5; // +/- 5 offset
+                // Ensure offset is not 0
+                if (wrongAnswerOffset === 0) wrongAnswerOffset = (Math.random() < 0.5 ? 1 : -1);
+                let wrongAnswer = Math.max(1, currentCorrectAnswer + wrongAnswerOffset); // Apply offset, min 1
+
+                // Ensure wrong answer is distinct from correct answer and other options
+                if (!options.includes(wrongAnswer) && wrongAnswer !== currentCorrectAnswer) {
+                    options.push(wrongAnswer);
+                }
+            }
+
+            shuffleArray(options); // Randomize option order
+
+            // Display options as buttons
+            answerOptionsElement.innerHTML = ''; // Clear previous buttons
+            options.forEach(option => {
+                const button = document.createElement('button');
+                button.textContent = option;
+                button.onclick = () => checkAnswer(option);
+                answerOptionsElement.appendChild(button);
+            });
+
+            // Clear previous feedback
+            feedbackElement.textContent = '';
         }
 
-        // --- Quiz Functions ---
-        function generateQuestions() {
-            questionsContainer.innerHTML = '';
-            questions = [];
+        function checkAnswer(selectedAnswer) {
+            if (!gameActive) return; // Don't process answers if game isn't active
 
-            for (let i = 1; i <= maxMultiplier; i++) {
-                const correctAnswer = factor * i;
-                const itemDiv = document.createElement('div');
-                itemDiv.className = 'question-item';
+            if (selectedAnswer === currentCorrectAnswer) {
+                score++;
+                scoreElement.textContent = `Score: ${score}`;
+                feedbackElement.textContent = '✅ Correct!';
+                if (correctSound) correctSound(); // Play correct sound
 
-                const questionText = document.createElement('span');
-                questionText.className = 'question-text text-gray-700';
-                questionText.textContent = `${factor} × ${i} = `; // Use multiplication symbol
+                // Check for win condition
+                if (score >= maxQuestions) {
+                    endGame(true); // Won the game
+                } else {
+                    // Generate next question after a short delay
+                    setTimeout(generateQuestion, 800); // 800ms delay
+                }
+            } else {
+                feedbackElement.textContent = `❌ Wrong!`;
+                 if (wrongSound) wrongSound(); // Play wrong sound
+                 // Generate a new question after a short delay on wrong answer
+                 setTimeout(generateQuestion, 800); // 800ms delay
+            }
+        }
 
-                const answerInput = document.createElement('input');
-                answerInput.type = 'number';
-                answerInput.id = `answer-${i}`;
-                answerInput.className = 'answer-input border border-gray-300 rounded p-2 text-center focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200';
-                answerInput.setAttribute('aria-label', `Answer to ${factor} times ${i}`);
+        function updateTimer() {
+            const now = Date.now();
+            const elapsedTime = Math.floor((now - startTime) / 1000); // Time in seconds
+            timerElement.textContent = `Time: ${elapsedTime}s`;
+        }
 
-                const feedbackIcon = document.createElement('img');
-                feedbackIcon.className = 'feedback-icon';
-                feedbackIcon.alt = "Feedback";
+        function startGame() {
+            // Ensure Tone.js context is started by user interaction
+            Tone.start().then(setupSounds);
 
-                itemDiv.appendChild(questionText);
-                itemDiv.appendChild(answerInput);
-                itemDiv.appendChild(feedbackIcon);
-                questionsContainer.appendChild(itemDiv);
+            gameActive = true;
+            score = 0;
+            questionNumber = 0;
+            // Use multipliers 1 to 12, shuffle, and take the first 'maxQuestions'
+            availableMultipliers = Array.from({length: 12}, (_, i) => i + 1); // Numbers 1 to 12
+            shuffleArray(availableMultipliers);
+            availableMultipliers = availableMultipliers.slice(0, maxQuestions); // Take only the needed amount
 
-                questions.push({
-                    multiplier: i,
-                    correctAnswer: correctAnswer,
-                    inputElement: answerInput,
-                    iconElement: feedbackIcon,
-                    itemDiv: itemDiv // Store the container div reference
+            scoreElement.textContent = `Score: ${score}`;
+            feedbackElement.textContent = '';
+            startScreen.classList.add('hidden');
+            endScreen.classList.add('hidden');
+            gameScreen.classList.remove('hidden');
+            celebrationCanvas.style.display = 'none'; // Ensure canvas is hidden
+            stopCelebrationAnimation(); // Ensure previous animation is stopped
+
+            startTime = Date.now();
+            timerInterval = setInterval(updateTimer, 1000); // Update timer every second
+            updateTimer(); // Initial timer display
+
+            generateQuestion();
+        }
+
+        function endGame(isWin) {
+            gameActive = false;
+            clearInterval(timerInterval); // Stop the timer
+
+            gameScreen.classList.add('hidden');
+            endScreen.classList.remove('hidden');
+
+            if (isWin) {
+                const endTime = Date.now();
+                const totalTime = Math.floor((endTime - startTime) / 1000);
+                endMessageElement.textContent = "🎉 You did it! 🎉";
+                finalTimeElement.textContent = `Your time: ${totalTime}s`;
+                celebrationCanvas.style.display = 'block'; // Show canvas
+                particles = []; // Reset particles for new animation
+                 // Start animation slightly delayed to ensure canvas is visible and sized
+                requestAnimationFrame(() => {
+                    animateCelebration();
                 });
-            }
-        }
-
-        function submitQuiz() {
-            initializeAudio();
-            stopTimer();
-            score = 0;
-            submitButton.disabled = true;
-
-            questions.forEach((q, index) => {
-                const input = q.inputElement;
-                const icon = q.iconElement;
-                const itemDiv = q.itemDiv; // Get the container div
-                const userAnswer = parseInt(input.value, 10);
-
-                input.disabled = true;
-                icon.classList.add('visible'); // Make icon visible using class for transition
-
-                // Remove previous animation/feedback classes
-                itemDiv.classList.remove('flash-correct', 'shake-incorrect');
-                 // Reset background color explicitly if needed
-                itemDiv.style.backgroundColor = '';
-                icon.classList.remove('text-green-500', 'text-red-500'); // Just in case SVG styling uses text color
-
-                // Add a slight delay for each feedback item for a cascading effect
-                setTimeout(() => {
-                    if (!isNaN(userAnswer) && userAnswer === q.correctAnswer) {
-                        score++;
-                        input.classList.remove('border-gray-300', 'border-red-500');
-                        input.classList.add('border-green-500', 'border-2');
-                        icon.src = 'https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/check-circle-2.svg';
-                        itemDiv.classList.add('flash-correct'); // Add flash animation
-                        if (soundsReady) correctSynth.triggerAttackRelease('C5', '8n', Tone.now() + 0.02);
-
-                    } else {
-                        input.classList.remove('border-gray-300', 'border-green-500');
-                        input.classList.add('border-red-500', 'border-2');
-                        icon.src = 'https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/x-circle.svg';
-                        itemDiv.classList.add('shake-incorrect'); // Add shake animation
-                        if (soundsReady) incorrectSynth.triggerAttackRelease('C3', '8n', Tone.now() + 0.02);
-                        if (isNaN(userAnswer)) input.value = '';
-                        // Show correct answer in placeholder
-                        input.placeholder = q.correctAnswer;
-                    }
-
-                    // Remove animation classes after they finish to allow re-triggering on restart
-                    setTimeout(() => {
-                         itemDiv.classList.remove('flash-correct', 'shake-incorrect');
-                         itemDiv.style.backgroundColor = ''; // Ensure background reset after animation
-                    }, 600); // Match animation duration
-
-                }, index * 50); // Stagger feedback by 50ms per question
-            });
-
-            // Delay showing final score to allow animations/sounds to play
-            setTimeout(showFinalScore, questions.length * 50 + 500); // Wait for staggered feedback + 0.5s
-        }
-
-        function showFinalScore() {
-            // quizArea might be kept visible to see results
-            scoreArea.classList.remove('hidden');
-            finalScoreElement.textContent = score;
-            finalTimeElement.textContent = formatTime(secondsElapsed);
-
-            let message = "";
-            const percentage = (score / maxMultiplier) * 100;
-
-            if (percentage === 100) {
-                message = "WOW! PERFECT SCORE! 🎉 You're a Multiplication Superstar! ✨";
-                if (soundsReady) perfectScoreSynth.triggerAttackRelease(["C4", "E4", "G4", "C5"], "4n", Tone.now() + 0.1); // Play cheerful chord
-                animationContainer.style.display = 'block';
-                floatingAnimation.play();
-                setTimeout(() => {
-                    animationContainer.style.display = 'none';
-                    floatingAnimation.stop();
-                }, 6000); // Show confetti longer
-
-            } else if (percentage >= 75) {
-                message = "Awesome Job! 👍 You really know your stuff!";
-                if (soundsReady) finishSynth.triggerAttackRelease('G4', '4n', Tone.now() + 0.1);
-            } else if (percentage >= 50) {
-                message = "Good Try! Keep practicing, you're getting there! 💪";
             } else {
-                message = "Practice makes perfect! Keep going! 🚀";
+                // Optional: Handle game loss (e.g., time out - not implemented here)
+                endMessageElement.textContent = "Game Over";
+                finalTimeElement.textContent = ""; // No time shown on loss
+                celebrationCanvas.style.display = 'none'; // Hide canvas
             }
-            scoreMessageElement.textContent = message;
-
-             // Scroll to score area smoothly
-             scoreArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
-        function restartQuiz() {
-            score = 0;
-            secondsElapsed = 0;
-            scoreArea.classList.add('hidden');
-            submitButton.disabled = false;
-            animationContainer.style.display = 'none'; // Ensure confetti is hidden
-            floatingAnimation.stop();
+        // Event Listeners
+        startButton.addEventListener('click', startGame);
+        restartButton.addEventListener('click', startGame); // Restart uses the same function
 
-            questions.forEach(q => {
-                q.inputElement.value = '';
-                q.inputElement.disabled = false;
-                q.inputElement.classList.remove('border-green-500', 'border-red-500', 'border-2');
-                q.inputElement.classList.add('border-gray-300');
-                q.inputElement.placeholder = '';
-                q.iconElement.classList.remove('visible'); // Hide icon again
-                q.iconElement.src = '';
-                q.itemDiv.classList.remove('flash-correct', 'shake-incorrect'); // Clear any leftover animation classes
-                 q.itemDiv.style.backgroundColor = ''; // Reset background
-            });
-
-            startTimer();
-            questions[0]?.inputElement.focus(); // Focus first input
-            // Scroll back to the top smoothly
-            quizArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-        }
-
-        // --- Event Listeners ---
-        submitButton.addEventListener('click', () => {
-            // Ensure audio context is ready on the first *real* user interaction
-            initializeAudio().then(() => {
-                submitQuiz();
-            });
+        // Resize handler (identical)
+        window.addEventListener('resize', () => {
+            if (celebrationCanvas.style.display === 'block') {
+                 stopCelebrationAnimation();
+                 // Update canvas dimensions
+                 celebrationCanvas.width = celebrationCanvas.offsetWidth;
+                 celebrationCanvas.height = celebrationCanvas.offsetHeight;
+                 // Restart animation if the game is still in the ended state
+                 if (!gameActive && score === maxQuestions) {
+                     particles = []; // Reset particles
+                     animateCelebration();
+                 }
+            }
         });
-        restartButton.addEventListener('click', restartQuiz);
-
-        // --- Initial Setup ---
-        generateQuestions();
-        startTimer();
-        questions[0]?.inputElement.focus();
-
-         // Pre-start audio context on first interaction with the body,
-         // makes sounds more responsive on the first submit.
-         document.body.addEventListener('click', initializeAudio, { once: true });
-         document.body.addEventListener('keydown', initializeAudio, { once: true });
-
 
     </script>
-
 </body>
 </html>
