@@ -9,6 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
     <style>
         /* Use Inter font */
         body {
@@ -50,6 +51,20 @@
         .feedback-icon {
            visibility: hidden;
         }
+        #animation-container {
+            position: fixed; /* Overlay the entire window */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* Allows clicks to go through */
+            z-index: 1000; /* Ensure it's on top */
+            display: none; /* Initially hidden */
+        }
+        .lottie-animation {
+            width: 100%;
+            height: 100%;
+        }
 
     </style>
 </head>
@@ -88,6 +103,18 @@
         </div>
     </div>
 
+    <div id="animation-container">
+        <lottie-player
+            id="floating-animation"
+            class="lottie-animation"
+            src="https://lottie.host/b52f54e1-2d93-4959-8957-b958814a9915/r6v7Tj8rQS.json"
+            background="transparent"
+            speed="1"
+            loop
+            autoplay
+        ></lottie-player>
+    </div>
+
     <script>
         // --- DOM Elements ---
         const questionsContainer = document.getElementById('questions-container');
@@ -99,6 +126,8 @@
         const finalTimeElement = document.getElementById('final-time');
         const scoreMessageElement = document.getElementById('score-message');
         const restartButton = document.getElementById('restart-btn');
+        const animationContainer = document.getElementById('animation-container');
+        const floatingAnimation = document.getElementById('floating-animation');
 
         // --- Quiz State ---
         const factor = 7; // The number we are multiplying by
@@ -275,7 +304,19 @@
             const percentage = (score / maxMultiplier) * 100;
             if (percentage === 100) {
                 message = "Wow! Perfect score! You're a multiplication master! 醇";
-                 if (soundsReady) finishSynth.triggerAttackRelease('G5', '4n', Tone.now() + 0.1); // Play success sound
+                 if (soundsReady) {
+                    finishSynth.triggerAttackRelease('G5', '4n', Tone.now() + 0.1); // Play success sound
+                }
+                // Trigger the animation
+                animationContainer.style.display = 'block';
+                floatingAnimation.play();
+
+                // Hide the animation after a delay
+                setTimeout(() => {
+                    animationContainer.style.display = 'none';
+                    floatingAnimation.stop();
+                }, 5000); // 5 seconds
+
             } else if (percentage >= 75) {
                 message = "Great job! You know your 7 times table really well! 総";
                  if (soundsReady) finishSynth.triggerAttackRelease('E5', '4n', Tone.now() + 0.1);
@@ -316,10 +357,6 @@
         // --- Event Listeners ---
         submitButton.addEventListener('click', submitQuiz);
         restartButton.addEventListener('click', restartQuiz);
-
-        // Attempt to initialize audio gently on load, but rely on interaction (submit)
-        // Tone.start().catch(e => console.warn("Audio context couldn't start automatically:", e));
-
 
         // --- Initial Setup ---
         generateQuestions(); // Create the questions on page load
