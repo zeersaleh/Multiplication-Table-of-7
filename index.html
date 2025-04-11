@@ -9,62 +9,97 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@700&display=swap" rel="stylesheet"> <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
     <style>
-        /* Use Inter font */
+        /* Use Inter font, with Comic Neue for headings */
         body {
             font-family: 'Inter', sans-serif;
-            /* Add a subtle dot pattern on top of the gradient */
             background-image: radial-gradient(circle, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
-            background-size: 15px 15px; /* Size of the pattern */
+            background-size: 15px 15px;
         }
-        /* Style for disabled elements */
+        h1, h2 {
+             font-family: 'Comic Neue', cursive; /* Fun font for headers */
+        }
         input:disabled {
-            background-color: #f3f4f6; /* gray-100 */
+            background-color: #f3f4f6;
             cursor: not-allowed;
         }
         button:disabled {
             opacity: 0.6;
             cursor: not-allowed;
         }
-        /* Ensure icons align nicely */
         .question-item {
             display: flex;
             align-items: center;
-            gap: 0.5rem; /* space between elements */
-            margin-bottom: 0.75rem; /* space between questions */
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+            padding: 0.25rem; /* Add padding for flash effect */
+            border-radius: 0.375rem; /* Rounded corners for flash effect */
+            transition: background-color 0.3s ease; /* Smooth transition */
         }
         .question-text {
-            width: 80px; /* Fixed width for alignment */
+            width: 80px;
             text-align: right;
             font-weight: 500;
         }
         .answer-input {
-            flex-grow: 1; /* Input takes remaining space */
-            max-width: 100px; /* Limit input width */
+            flex-grow: 1;
+            max-width: 100px;
         }
         .feedback-icon {
-            width: 24px; /* Fixed icon size */
+            width: 24px;
             height: 24px;
+           visibility: hidden; /* Keep hidden initially */
+           opacity: 0; /* Start fully transparent */
+           transition: opacity 0.3s ease-in-out; /* Fade in */
         }
-        /* Hide icons initially */
-        .feedback-icon {
-           visibility: hidden;
+         .feedback-icon.visible { /* Class to make icon visible */
+            visibility: visible;
+            opacity: 1;
         }
+
         #animation-container {
-            position: fixed; /* Overlay the entire window */
+            position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            pointer-events: none; /* Allows clicks to go through */
-            z-index: 1000; /* Ensure it's on top */
-            display: none; /* Initially hidden */
+            pointer-events: none;
+            z-index: 1000;
+            display: none;
         }
         .lottie-animation {
             width: 100%;
             height: 100%;
         }
+
+        /* --- Animations --- */
+        @keyframes flashCorrect {
+            0%, 100% { background-color: transparent; }
+            50% { background-color: rgba(74, 222, 128, 0.6); } /* Lighter green flash */
+        }
+        .flash-correct {
+            animation: flashCorrect 0.6s ease-in-out;
+        }
+
+        @keyframes shakeIncorrect {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-6px); }
+            20%, 40%, 60%, 80% { transform: translateX(6px); }
+        }
+        .shake-incorrect {
+            animation: shakeIncorrect 0.5s ease-in-out;
+            background-color: rgba(239, 68, 68, 0.3); /* Light red background during shake */
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        .pulse-animation {
+             animation: pulse 2s infinite ease-in-out;
+        }
+
 
     </style>
 </head>
@@ -72,39 +107,35 @@
 
     <div class="bg-white rounded-xl shadow-lg p-6 md:p-8 w-full max-w-lg text-center">
         <div class="flex justify-center mb-4">
-            <a href="https://www.instagram.com/saleh__zeer/" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center">
-                <div class="w-16 h-16 rounded-full bg-indigo-500 flex items-center justify-center hover:bg-indigo-600 transition-colors duration-200">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-instagram text-white">
-                        <rect width="20" height="20" x="2" y="2" rx="5" ry="5"/>
-                        <path d="M16 11.37A4 4 0 1 0 12.63 8 4 4 0 0 0 16 11.37z"/>
-                        <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/>
-                    </svg>
-                </div>
-            </a>
+             <lottie-player src="https://lottie.host/2f5b8f8f-1f1d-4f1e-8f0a-7c4c8e8e7f7f/s7a5f4e3d.json" background="transparent" speed="1" style="width: 80px; height: 80px;" loop autoplay></lottie-player>
         </div>
         <h1 class="text-2xl md:text-3xl font-bold text-purple-700 mb-2">7 Times Table Challenge!</h1>
-        <p class="text-gray-600 mb-4">Answer all questions as quickly as you can.</p>
+        <p class="text-gray-600 mb-4">Ready, Set, Multiply!</p>
 
         <div class="mb-6 text-xl font-semibold text-indigo-600">
-            Time: <span id="timer">00:00</span>
+             Time: <span id="timer" class="pulse-animation inline-block">00:00</span>
         </div>
 
         <div id="quiz-area">
             <div id="questions-container" class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 mb-6">
                 </div>
 
-            <button id="submit-btn" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300 ease-in-out mb-4">
-                Submit Quiz
+             <button id="submit-btn" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 active:scale-100 mb-4">
+                Check My Answers!
             </button>
         </div>
 
         <div id="score-area" class="hidden border-t pt-6 mt-6">
-            <h2 class="text-2xl font-bold text-green-600 mb-3">Quiz Complete!</h2>
-            <p class="text-lg mb-2">Your score: <span id="final-score" class="font-bold">0</span> out of 12</p>
+             <h2 class="text-2xl font-bold text-green-600 mb-3 flex items-center justify-center gap-2">
+                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="text-yellow-400"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                 Quiz Complete!
+                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="text-yellow-400"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+            </h2>
+            <p class="text-lg mb-2">Your score: <span id="final-score" class="font-bold text-xl text-blue-600">0</span> out of 12</p>
             <p class="text-lg mb-4">Time Taken: <span id="final-time" class="font-bold">00:00</span></p>
-            <p id="score-message" class="text-gray-700 mb-6 font-medium"></p>
-            <button id="restart-btn" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg transition duration-300 ease-in-out">
-                Play Again?
+            <p id="score-message" class="text-gray-700 mb-6 font-medium text-lg"></p>
+             <button id="restart-btn" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 active:scale-100">
+                Play Again? Let's Go!
             </button>
         </div>
     </div>
@@ -136,238 +167,233 @@
         const floatingAnimation = document.getElementById('floating-animation');
 
         // --- Quiz State ---
-        const factor = 7; // The number we are multiplying by
-        const maxMultiplier = 12; // We'll go up to 7 x 12
+        const factor = 7;
+        const maxMultiplier = 12;
         let score = 0;
         let timerInterval = null;
         let secondsElapsed = 0;
-        let questions = []; // To store question data { multiplier, correctAnswer, inputElement, iconElement }
+        let questions = []; // { multiplier, correctAnswer, inputElement, iconElement, itemDiv }
 
         // --- Sound Synthesis (Tone.js) ---
         let soundsReady = false;
-        const correctSynth = new Tone.Synth({
-            oscillator: { type: 'sine' }, // A simple, clear tone
-            envelope: { attack: 0.01, decay: 0.1, sustain: 0.1, release: 0.2 }
-        }).toDestination();
+        const correctSynth = new Tone.Synth({ oscillator: { type: 'sine' }, envelope: { attack: 0.01, decay: 0.1, sustain: 0.1, release: 0.2 } }).toDestination();
+        const incorrectSynth = new Tone.Synth({ oscillator: { type: 'square' }, envelope: { attack: 0.01, decay: 0.2, sustain: 0, release: 0.2 } }).toDestination();
+        const finishSynth = new Tone.Synth({ oscillator: { type: 'triangle' }, envelope: { attack: 0.05, decay: 0.2, sustain: 0.3, release: 0.5 } }).toDestination();
+        const perfectScoreSynth = new Tone.PolySynth(Tone.Synth, { oscillator: { type: "pwm", modulationFrequency: 0.2 }, envelope: { attack: 0.02, decay: 0.1, sustain: 0.3, release: 0.4 } }).toDestination();
 
-        const incorrectSynth = new Tone.Synth({
-            oscillator: { type: 'square' }, // A harsher, buzz-like tone
-            envelope: { attack: 0.01, decay: 0.2, sustain: 0, release: 0.2 }
-        }).toDestination();
 
-        const finishSynth = new Tone.Synth({
-            oscillator: { type: 'triangle' },
-             envelope: { attack: 0.05, decay: 0.2, sustain: 0.3, release: 0.5 }
-        }).toDestination();
-
-        // Function to ensure Tone.js context is started by user interaction
         async function initializeAudio() {
-            // Check if Tone.js context is already running
             if (Tone.context.state !== 'running') {
-                 await Tone.start();
-                 console.log('Audio Context started.');
+                 try {
+                    await Tone.start();
+                    console.log('Audio Context started.');
+                    soundsReady = true;
+                 } catch (e) {
+                     console.error("Could not start Audio Context:", e);
+                     soundsReady = false; // Ensure it's false if Tone.start() fails
+                 }
+            } else {
+                soundsReady = true; // Already running
             }
-            soundsReady = true; // Assume ready after attempting to start
         }
-
 
         // --- Timer Functions ---
         function formatTime(seconds) {
             const minutes = Math.floor(seconds / 60);
             const remainingSeconds = seconds % 60;
-            const formattedMinutes = String(minutes).padStart(2, '0');
-            const formattedSeconds = String(remainingSeconds).padStart(2, '0');
-            return `${formattedMinutes}:${formattedSeconds}`;
+            return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
         }
 
         function startTimer() {
-            if (timerInterval) clearInterval(timerInterval); // Clear existing interval if any
+            stopTimer(); // Ensure no multiple intervals
             secondsElapsed = 0;
-            timerElement.textContent = formatTime(secondsElapsed); // Initial display
+            timerElement.textContent = formatTime(secondsElapsed);
+            timerElement.classList.add('pulse-animation'); // Start pulsing
             timerInterval = setInterval(() => {
                 secondsElapsed++;
                 timerElement.textContent = formatTime(secondsElapsed);
-            }, 1000); // Update every second
+            }, 1000);
         }
 
         function stopTimer() {
             clearInterval(timerInterval);
             timerInterval = null;
+            timerElement.classList.remove('pulse-animation'); // Stop pulsing
         }
 
         // --- Quiz Functions ---
-
-        // Function to generate questions and inputs
         function generateQuestions() {
-            questionsContainer.innerHTML = ''; // Clear previous questions
-            questions = []; // Reset questions array
+            questionsContainer.innerHTML = '';
+            questions = [];
 
             for (let i = 1; i <= maxMultiplier; i++) {
                 const correctAnswer = factor * i;
-
-                // Create elements for each question item
                 const itemDiv = document.createElement('div');
                 itemDiv.className = 'question-item';
 
                 const questionText = document.createElement('span');
                 questionText.className = 'question-text text-gray-700';
-                questionText.textContent = `${factor} x ${i} = `;
+                questionText.textContent = `${factor} × ${i} = `; // Use multiplication symbol
 
                 const answerInput = document.createElement('input');
                 answerInput.type = 'number';
-                // Use unique ID for potential future use (e.g., labels)
                 answerInput.id = `answer-${i}`;
-                answerInput.className = 'answer-input border border-gray-300 rounded p-2 text-center focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent';
-                answerInput.setAttribute('aria-label', `Answer to ${factor} times ${i}`); // Accessibility
+                answerInput.className = 'answer-input border border-gray-300 rounded p-2 text-center focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200';
+                answerInput.setAttribute('aria-label', `Answer to ${factor} times ${i}`);
 
-                const feedbackIcon = document.createElement('img'); // Using <img> for lucide static
+                const feedbackIcon = document.createElement('img');
                 feedbackIcon.className = 'feedback-icon';
-                feedbackIcon.alt = "Feedback"; // Alt text for accessibility
-                // We set the src dynamically in submitQuiz using lucide-static URLs
+                feedbackIcon.alt = "Feedback";
 
                 itemDiv.appendChild(questionText);
                 itemDiv.appendChild(answerInput);
                 itemDiv.appendChild(feedbackIcon);
                 questionsContainer.appendChild(itemDiv);
 
-                // Store references
                 questions.push({
                     multiplier: i,
                     correctAnswer: correctAnswer,
                     inputElement: answerInput,
-                    iconElement: feedbackIcon
+                    iconElement: feedbackIcon,
+                    itemDiv: itemDiv // Store the container div reference
                 });
             }
         }
 
-        // Function to check all answers
         function submitQuiz() {
-            initializeAudio(); // Ensure audio context is started
+            initializeAudio();
             stopTimer();
             score = 0;
-            submitButton.disabled = true; // Disable submit button after submission
+            submitButton.disabled = true;
 
-            questions.forEach(q => {
+            questions.forEach((q, index) => {
                 const input = q.inputElement;
                 const icon = q.iconElement;
+                const itemDiv = q.itemDiv; // Get the container div
                 const userAnswer = parseInt(input.value, 10);
 
-                input.disabled = true; // Disable input after checking
-                icon.style.visibility = 'visible'; // Make icon visible
-                // Clear previous text color classes before adding new ones
-                icon.classList.remove('text-green-500', 'text-red-500');
+                input.disabled = true;
+                icon.classList.add('visible'); // Make icon visible using class for transition
 
+                // Remove previous animation/feedback classes
+                itemDiv.classList.remove('flash-correct', 'shake-incorrect');
+                 // Reset background color explicitly if needed
+                itemDiv.style.backgroundColor = '';
+                icon.classList.remove('text-green-500', 'text-red-500'); // Just in case SVG styling uses text color
 
-                if (!isNaN(userAnswer) && userAnswer === q.correctAnswer) {
-                    // Correct Answer
-                    score++;
-                    input.classList.remove('border-gray-300', 'border-red-500');
-                    input.classList.add('border-green-500', 'border-2'); // Green border
-                    // Use full URL for lucide-static icons
-                    icon.src = 'https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/check-circle-2.svg'; // Green check icon
-                    icon.classList.add('text-green-500'); // Add text color for SVG icon if needed
-                    // Play correct sound slightly delayed if audio is ready
-                    if (soundsReady) {
-                        correctSynth.triggerAttackRelease('C5', '8n', Tone.now() + 0.05);
+                // Add a slight delay for each feedback item for a cascading effect
+                setTimeout(() => {
+                    if (!isNaN(userAnswer) && userAnswer === q.correctAnswer) {
+                        score++;
+                        input.classList.remove('border-gray-300', 'border-red-500');
+                        input.classList.add('border-green-500', 'border-2');
+                        icon.src = 'https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/check-circle-2.svg';
+                        itemDiv.classList.add('flash-correct'); // Add flash animation
+                        if (soundsReady) correctSynth.triggerAttackRelease('C5', '8n', Tone.now() + 0.02);
+
+                    } else {
+                        input.classList.remove('border-gray-300', 'border-green-500');
+                        input.classList.add('border-red-500', 'border-2');
+                        icon.src = 'https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/x-circle.svg';
+                        itemDiv.classList.add('shake-incorrect'); // Add shake animation
+                        if (soundsReady) incorrectSynth.triggerAttackRelease('C3', '8n', Tone.now() + 0.02);
+                        if (isNaN(userAnswer)) input.value = '';
+                        // Show correct answer in placeholder
+                        input.placeholder = q.correctAnswer;
                     }
-                } else {
-                    // Incorrect Answer
-                    input.classList.remove('border-gray-300', 'border-green-500');
-                    input.classList.add('border-red-500', 'border-2'); // Red border
-                     // Use full URL for lucide-static icons
-                    icon.src = 'https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/x-circle.svg'; // Red X icon
-                    icon.classList.add('text-red-500'); // Add text color for SVG icon if needed
-                     // Play incorrect sound slightly delayed if audio is ready
-                     if (soundsReady) {
-                         incorrectSynth.triggerAttackRelease('C3', '8n', Tone.now() + 0.05);
-                     }
-                    // Optionally show the correct answer
-                     if (isNaN(userAnswer)) {
-                        input.value = ''; // Clear if not a number
-                     }
-                     // Show correct answer in placeholder after a short delay to allow icon/border update
-                     setTimeout(() => {
-                        if (input.value != q.correctAnswer) { // Avoid overwriting if user accidentally typed it correctly but was marked wrong (e.g., extra spaces)
-                           input.placeholder = q.correctAnswer;
-                        }
-                     }, 100);
-                }
+
+                    // Remove animation classes after they finish to allow re-triggering on restart
+                    setTimeout(() => {
+                         itemDiv.classList.remove('flash-correct', 'shake-incorrect');
+                         itemDiv.style.backgroundColor = ''; // Ensure background reset after animation
+                    }, 600); // Match animation duration
+
+                }, index * 50); // Stagger feedback by 50ms per question
             });
 
-            // Delay showing final score slightly to allow sounds to play
-            setTimeout(showFinalScore, 500);
+            // Delay showing final score to allow animations/sounds to play
+            setTimeout(showFinalScore, questions.length * 50 + 500); // Wait for staggered feedback + 0.5s
         }
 
-        // Function to show the final score
         function showFinalScore() {
-           // quizArea.classList.add('hidden'); // Keep quiz visible to show results
+            // quizArea might be kept visible to see results
             scoreArea.classList.remove('hidden');
             finalScoreElement.textContent = score;
             finalTimeElement.textContent = formatTime(secondsElapsed);
 
-            // Provide encouraging message based on score
             let message = "";
             const percentage = (score / maxMultiplier) * 100;
+
             if (percentage === 100) {
-                message = "Wow! Perfect score! You're a multiplication master! 醇";
-                 if (soundsReady) {
-                    finishSynth.triggerAttackRelease('G5', '4n', Tone.now() + 0.1); // Play success sound
-                }
-                // Trigger the animation
+                message = "WOW! PERFECT SCORE! 🎉 You're a Multiplication Superstar! ✨";
+                if (soundsReady) perfectScoreSynth.triggerAttackRelease(["C4", "E4", "G4", "C5"], "4n", Tone.now() + 0.1); // Play cheerful chord
                 animationContainer.style.display = 'block';
                 floatingAnimation.play();
-
-                // Hide the animation after a delay
                 setTimeout(() => {
                     animationContainer.style.display = 'none';
                     floatingAnimation.stop();
-                }, 5000); // 5 seconds
+                }, 6000); // Show confetti longer
 
             } else if (percentage >= 75) {
-                message = "Great job! You know your 7 times table really well! 総";
-                 if (soundsReady) finishSynth.triggerAttackRelease('E5', '4n', Tone.now() + 0.1);
+                message = "Awesome Job! 👍 You really know your stuff!";
+                if (soundsReady) finishSynth.triggerAttackRelease('G4', '4n', Tone.now() + 0.1);
             } else if (percentage >= 50) {
-                message = "Good effort! Keep practicing to get even better! ";
+                message = "Good Try! Keep practicing, you're getting there! 💪";
             } else {
-                message = "Keep practicing! You'll get the hang of it! 潮";
+                message = "Practice makes perfect! Keep going! 🚀";
             }
             scoreMessageElement.textContent = message;
+
+             // Scroll to score area smoothly
+             scoreArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
-        // Function to restart the quiz
         function restartQuiz() {
             score = 0;
             secondsElapsed = 0;
             scoreArea.classList.add('hidden');
-            // quizArea.classList.remove('hidden'); // Quiz area stays visible
-            submitButton.disabled = false; // Re-enable submit button
+            submitButton.disabled = false;
+            animationContainer.style.display = 'none'; // Ensure confetti is hidden
+            floatingAnimation.stop();
 
-            // Reset inputs and icons
             questions.forEach(q => {
                 q.inputElement.value = '';
                 q.inputElement.disabled = false;
                 q.inputElement.classList.remove('border-green-500', 'border-red-500', 'border-2');
                 q.inputElement.classList.add('border-gray-300');
-                q.inputElement.placeholder = ''; // Clear placeholder
-                q.iconElement.style.visibility = 'hidden';
-                q.iconElement.src = ''; // Clear icon source
-                q.iconElement.classList.remove('text-green-500', 'text-red-500');
+                q.inputElement.placeholder = '';
+                q.iconElement.classList.remove('visible'); // Hide icon again
+                q.iconElement.src = '';
+                q.itemDiv.classList.remove('flash-correct', 'shake-incorrect'); // Clear any leftover animation classes
+                 q.itemDiv.style.backgroundColor = ''; // Reset background
             });
 
-            // Regenerate questions might be simpler if layout issues occur, but resetting is usually fine
-            // generateQuestions();
-            startTimer(); // Restart timer
-            questions[0]?.inputElement.focus(); // Focus on the first input
+            startTimer();
+            questions[0]?.inputElement.focus(); // Focus first input
+            // Scroll back to the top smoothly
+            quizArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
         }
 
         // --- Event Listeners ---
-        submitButton.addEventListener('click', submitQuiz);
+        submitButton.addEventListener('click', () => {
+            // Ensure audio context is ready on the first *real* user interaction
+            initializeAudio().then(() => {
+                submitQuiz();
+            });
+        });
         restartButton.addEventListener('click', restartQuiz);
 
         // --- Initial Setup ---
-        generateQuestions(); // Create the questions on page load
-        startTimer(); // Start the timer immediately
-        questions[0]?.inputElement.focus(); // Focus on the first input field
+        generateQuestions();
+        startTimer();
+        questions[0]?.inputElement.focus();
+
+         // Pre-start audio context on first interaction with the body,
+         // makes sounds more responsive on the first submit.
+         document.body.addEventListener('click', initializeAudio, { once: true });
+         document.body.addEventListener('keydown', initializeAudio, { once: true });
+
 
     </script>
 
