@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multiplication Quiz: 7 Times Table</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Use Inter font */
+        body {
+            font-family: 'Inter', sans-serif;
+            /* Add a subtle dot pattern on top of the gradient */
+            background-image: radial-gradient(circle, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+            background-size: 15px 15px; /* Size of the pattern */
+        }
+        /* Style for disabled elements */
+        input:disabled {
+            background-color: #f3f4f6; /* gray-100 */
+            cursor: not-allowed;
+        }
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        /* Ensure icons align nicely */
+        .question-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem; /* space between elements */
+            margin-bottom: 0.75rem; /* space between questions */
+        }
+        .question-text {
+            width: 80px; /* Fixed width for alignment */
+            text-align: right;
+            font-weight: 500;
+        }
+        .answer-input {
+            flex-grow: 1; /* Input takes remaining space */
+            max-width: 100px; /* Limit input width */
+        }
+        .feedback-icon {
+            width: 24px; /* Fixed icon size */
+            height: 24px;
+        }
+        /* Hide icons initially */
+        .feedback-icon {
+           visibility: hidden;
+        }
+
+    </style>
+</head>
+  <body class="bg-gradient-to-br from-yellow-100 via-pink-100 to-sky-200 min-h-screen flex items-center justify-center p-4">
+
+    <div class="bg-white rounded-xl shadow-lg p-6 md:p-8 w-full max-w-lg text-center">
+        <div class="flex justify-center mb-4">
+            <div class="w-16 h-16 rounded-full bg-indigo-500 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-instagram text-white"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 0 12.63 8 4 4 0 0 0 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
+            </div>
+        </div>
+        <h1 class="text-2xl md:text-3xl font-bold text-purple-700 mb-2">7 Times Table Challenge!</h1>
+        <p class="text-gray-600 mb-4">Answer all questions as quickly as you can.</p>
+
+        <div class="mb-6 text-xl font-semibold text-indigo-600">
+            Time: <span id="timer">00:00</span>
+        </div>
+
+        <div id="quiz-area">
+            <div id="questions-container" class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 mb-6">
+                </div>
+
+            <button id="submit-btn" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300 ease-in-out mb-4">
+                Submit Quiz
+            </button>
+        </div>
+
+        <div id="score-area" class="hidden border-t pt-6 mt-6">
+            <h2 class="text-2xl font-bold text-green-600 mb-3">Quiz Complete!</h2>
+            <p class="text-lg mb-2">Your score: <span id="final-score" class="font-bold">0</span> out of 12</p>
+            <p class="text-lg mb-4">Time Taken: <span id="final-time" class="font-bold">00:00</span></p>
+            <p id="score-message" class="text-gray-700 mb-6 font-medium"></p>
+            <button id="restart-btn" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg transition duration-300 ease-in-out">
+                Play Again?
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- DOM Elements ---
+        const questionsContainer = document.getElementById('questions-container');
+        const submitButton = document.getElementById('submit-btn');
+        const timerElement = document.getElementById('timer');
+        const quizArea = document.getElementById('quiz-area');
+        const scoreArea = document.getElementById('score-area');
+        const finalScoreElement = document.getElementById('final-score');
+        const finalTimeElement = document.getElementById('final-time');
+        const scoreMessageElement = document.getElementById('score-message');
+        const restartButton = document.getElementById('restart-btn');
+
+        // --- Quiz State ---
+        const factor = 7; // The number we are multiplying by
+        const maxMultiplier = 12; // We'll go up to 7 x 12
+        let score = 0;
+        let timerInterval = null;
+        let secondsElapsed = 0;
+        let questions = []; // To store question data { multiplier, correctAnswer, inputElement, iconElement }
+
+        // --- Sound Synthesis (Tone.js) ---
+        let soundsReady = false;
+        const correctSynth = new Tone.Synth({
+            oscillator: { type: 'sine' }, // A simple, clear tone
+            envelope: { attack: 0.01, decay: 0.1, sustain: 0.1, release: 0.2 }
+        }).toDestination();
+
+        const incorrectSynth = new Tone.Synth({
+            oscillator: { type: 'square' }, // A harsher, buzz-like tone
+            envelope: { attack: 0.01, decay: 0.2, sustain: 0, release: 0.2 }
+        }).toDestination();
+
+        const finishSynth = new Tone.Synth({
+            oscillator: { type: 'triangle' },
+             envelope: { attack: 0.05, decay: 0.2, sustain: 0.3, release: 0.5 }
+        }).toDestination();
+
+        // Function to ensure Tone.js context is started by user interaction
+        async function initializeAudio() {
+            // Check if Tone.js context is already running
+            if (Tone.context.state !== 'running') {
+                 await Tone.start();
+                 console.log('Audio Context started.');
+            }
+            soundsReady = true; // Assume ready after attempting to start
+        }
+
+
+        // --- Timer Functions ---
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            const formattedMinutes = String(minutes).padStart(2, '0');
+            const formattedSeconds = String(remainingSeconds).padStart(2, '0');
+            return `${formattedMinutes}:${formattedSeconds}`;
+        }
+
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval); // Clear existing interval if any
+            secondsElapsed = 0;
+            timerElement.textContent = formatTime(secondsElapsed); // Initial display
+            timerInterval = setInterval(() => {
+                secondsElapsed++;
+                timerElement.textContent = formatTime(secondsElapsed);
+            }, 1000); // Update every second
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+
+        // --- Quiz Functions ---
+
+        // Function to generate questions and inputs
+        function generateQuestions() {
+            questionsContainer.innerHTML = ''; // Clear previous questions
+            questions = []; // Reset questions array
+
+            for (let i = 1; i <= maxMultiplier; i++) {
+                const correctAnswer = factor * i;
+
+                // Create elements for each question item
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'question-item';
+
+                const questionText = document.createElement('span');
+                questionText.className = 'question-text text-gray-700';
+                questionText.textContent = `${factor} x ${i} = `;
+
+                const answerInput = document.createElement('input');
+                answerInput.type = 'number';
+                // Use unique ID for potential future use (e.g., labels)
+                answerInput.id = `answer-${i}`;
+                answerInput.className = 'answer-input border border-gray-300 rounded p-2 text-center focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent';
+                answerInput.setAttribute('aria-label', `Answer to ${factor} times ${i}`); // Accessibility
+
+                const feedbackIcon = document.createElement('img'); // Using <img> for lucide static
+                feedbackIcon.className = 'feedback-icon';
+                feedbackIcon.alt = "Feedback"; // Alt text for accessibility
+                // We set the src dynamically in submitQuiz using lucide-static URLs
+
+                itemDiv.appendChild(questionText);
+                itemDiv.appendChild(answerInput);
+                itemDiv.appendChild(feedbackIcon);
+                questionsContainer.appendChild(itemDiv);
+
+                // Store references
+                questions.push({
+                    multiplier: i,
+                    correctAnswer: correctAnswer,
+                    inputElement: answerInput,
+                    iconElement: feedbackIcon
+                });
+            }
+        }
+
+        // Function to check all answers
+        function submitQuiz() {
+            initializeAudio(); // Ensure audio context is started
+            stopTimer();
+            score = 0;
+            submitButton.disabled = true; // Disable submit button after submission
+
+            questions.forEach(q => {
+                const input = q.inputElement;
+                const icon = q.iconElement;
+                const userAnswer = parseInt(input.value, 10);
+
+                input.disabled = true; // Disable input after checking
+                icon.style.visibility = 'visible'; // Make icon visible
+                // Clear previous text color classes before adding new ones
+                icon.classList.remove('text-green-500', 'text-red-500');
+
+
+                if (!isNaN(userAnswer) && userAnswer === q.correctAnswer) {
+                    // Correct Answer
+                    score++;
+                    input.classList.remove('border-gray-300', 'border-red-500');
+                    input.classList.add('border-green-500', 'border-2'); // Green border
+                    // Use full URL for lucide-static icons
+                    icon.src = 'https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/check-circle-2.svg'; // Green check icon
+                    icon.classList.add('text-green-500'); // Add text color for SVG icon if needed
+                    // Play correct sound slightly delayed if audio is ready
+                    if (soundsReady) {
+                        correctSynth.triggerAttackRelease('C5', '8n', Tone.now() + 0.05);
+                    }
+                } else {
+                    // Incorrect Answer
+                    input.classList.remove('border-gray-300', 'border-green-500');
+                    input.classList.add('border-red-500', 'border-2'); // Red border
+                     // Use full URL for lucide-static icons
+                    icon.src = 'https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/x-circle.svg'; // Red X icon
+                    icon.classList.add('text-red-500'); // Add text color for SVG icon if needed
+                     // Play incorrect sound slightly delayed if audio is ready
+                     if (soundsReady) {
+                         incorrectSynth.triggerAttackRelease('C3', '8n', Tone.now() + 0.05);
+                     }
+                    // Optionally show the correct answer
+                     if (isNaN(userAnswer)) {
+                        input.value = ''; // Clear if not a number
+                     }
+                     // Show correct answer in placeholder after a short delay to allow icon/border update
+                     setTimeout(() => {
+                        if (input.value != q.correctAnswer) { // Avoid overwriting if user accidentally typed it correctly but was marked wrong (e.g., extra spaces)
+                           input.placeholder = q.correctAnswer;
+                        }
+                     }, 100);
+                }
+            });
+
+            // Delay showing final score slightly to allow sounds to play
+            setTimeout(showFinalScore, 500);
+        }
+
+        // Function to show the final score
+        function showFinalScore() {
+           // quizArea.classList.add('hidden'); // Keep quiz visible to show results
+            scoreArea.classList.remove('hidden');
+            finalScoreElement.textContent = score;
+            finalTimeElement.textContent = formatTime(secondsElapsed);
+
+            // Provide encouraging message based on score
+            let message = "";
+            const percentage = (score / maxMultiplier) * 100;
+            if (percentage === 100) {
+                message = "Wow! Perfect score! You're a multiplication master! 醇";
+                 if (soundsReady) finishSynth.triggerAttackRelease('G5', '4n', Tone.now() + 0.1); // Play success sound
+            } else if (percentage >= 75) {
+                message = "Great job! You know your 7 times table really well! 総";
+                 if (soundsReady) finishSynth.triggerAttackRelease('E5', '4n', Tone.now() + 0.1);
+            } else if (percentage >= 50) {
+                message = "Good effort! Keep practicing to get even better! ";
+            } else {
+                message = "Keep practicing! You'll get the hang of it! 潮";
+            }
+            scoreMessageElement.textContent = message;
+        }
+
+        // Function to restart the quiz
+        function restartQuiz() {
+            score = 0;
+            secondsElapsed = 0;
+            scoreArea.classList.add('hidden');
+            // quizArea.classList.remove('hidden'); // Quiz area stays visible
+            submitButton.disabled = false; // Re-enable submit button
+
+            // Reset inputs and icons
+            questions.forEach(q => {
+                q.inputElement.value = '';
+                q.inputElement.disabled = false;
+                q.inputElement.classList.remove('border-green-500', 'border-red-500', 'border-2');
+                q.inputElement.classList.add('border-gray-300');
+                q.inputElement.placeholder = ''; // Clear placeholder
+                q.iconElement.style.visibility = 'hidden';
+                q.iconElement.src = ''; // Clear icon source
+                q.iconElement.classList.remove('text-green-500', 'text-red-500');
+            });
+
+            // Regenerate questions might be simpler if layout issues occur, but resetting is usually fine
+            // generateQuestions();
+            startTimer(); // Restart timer
+            questions[0]?.inputElement.focus(); // Focus on the first input
+        }
+
+        // --- Event Listeners ---
+        submitButton.addEventListener('click', submitQuiz);
+        restartButton.addEventListener('click', restartQuiz);
+
+        // Attempt to initialize audio gently on load, but rely on interaction (submit)
+        // Tone.start().catch(e => console.warn("Audio context couldn't start automatically:", e));
+
+
+        // --- Initial Setup ---
+        generateQuestions(); // Create the questions on page load
+        startTimer(); // Start the timer immediately
+        questions[0]?.inputElement.focus(); // Focus on the first input field
+
+    </script>
+
+</body>
+</html>
