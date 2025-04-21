@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multiplication Wheel Game</title>
+    <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Chewy&display=swap" rel="stylesheet"> <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet"> <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Base Styles */
+        body {
+            font-family: 'Chewy', cursive; /* Default playful font */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            overflow-y: auto; /* Allow scrolling if content is too tall */
+            transition: background-color 0.5s ease; /* Smooth background transition */
+        }
+
+        .game-container {
+            text-align: center;
+            padding: 30px;
+            border-radius: 20px; /* More rounded */
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3); /* Deeper shadow */
+            max-width: 650px; /* Slightly wider */
+            width: 100%;
+            box-sizing: border-box;
+            position: relative;
+            overflow: hidden; /* For background effects */
+        }
+
+        h1 {
+            margin-top: 0;
+            margin-bottom: 25px; /* More space */
+            font-size: 2.5em; /* Larger heading */
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2); /* Text shadow */
+        }
+
+        .wheel-container {
+            position: relative;
+            width: 280px; /* Larger wheel */
+            height: 280px;
+            margin: 25px auto;
+        }
+
+        .wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 8px solid rgba(255, 255, 255, 0.8); /* Thicker border */
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4); /* Deeper shadow */
+            /* Transition duration is set in JS */
+            position: relative;
+            overflow: hidden;
+            background: conic-gradient(#ff9a8b 0% 10%, #ff6a88 10% 20%, #FFC107 20% 30%, #2196F3 30% 40%, #4CAF50 40% 50%, #FF9800 50% 60%, #9C27B0 60% 70%, #00BCD4 70% 80%, #FFEB3B 80% 90%, #8BC34A 90% 100%); /* Default conic gradient */
+        }
+
+         .wheel-segment {
+            /* Segments are now primarily for text positioning over the gradient background */
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 50%;
+            height: 100%;
+            transform-origin: 0% 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.4em; /* Slightly smaller text to fit */
+            font-weight: bold;
+            color: #fff; /* Default text color */
+            box-sizing: border-box;
+            /* border-left: 2px solid rgba(255, 255, 255, 0.3); /* Separator line - can be removed with gradient */
+             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); /* Text shadow for readability */
+        }
+
+        .wheel-pointer {
+            position: absolute;
+            top: -25px; /* Slightly higher */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 25px solid transparent; /* Larger pointer */
+            border-right: 25px solid transparent;
+            border-bottom: 40px solid #ff0000; /* Red pointer */
+            z-index: 10;
+            filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.3)); /* Shadow for pointer */
+        }
+
+        button {
+            padding: 15px 30px; /* Larger button */
+            font-size: 1.3em; /* Larger font */
+            cursor: pointer;
+            border: none;
+            border-radius: 10px; /* More rounded */
+            margin-top: 25px; /* More space */
+            transition: background-color 0.3s ease, transform 0.1s ease, box-shadow 0.3s ease;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3); /* Deeper shadow */
+            background: linear-gradient(to bottom, #FFD700, #FFA500); /* Default gradient button */
+            color: #333;
+            font-weight: bold;
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-2px); /* Lift effect on hover */
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.4);
+        }
+
+        button:active:not(:disabled) {
+            transform: translateY(0);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+
+        button:disabled {
+            opacity: 0.7; /* Slightly less opaque */
+            cursor: not-allowed;
+            background: #ccc; /* Grey out */
+            color: #666;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .problem-area {
+            margin-top: 30px;
+            font-size: 2em; /* Larger problem text */
+            min-height: 1.8em; /* Reserve space */
+            font-weight: bold;
+            color: #333; /* Default color */
+        }
+
+        .answer-options {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap; /* Allow wrapping on small screens */
+            gap: 15px; /* Space between options */
+            margin-top: 20px;
+        }
+
+        .answer-option {
+            padding: 12px 25px;
+            font-size: 1.4em; /* Larger option text */
+            cursor: pointer;
+            border: 3px solid transparent; /* Border for feedback */
+            border-radius: 8px;
+            transition: background-color 0.3s ease, border-color 0.3s ease, transform 0.1s ease;
+            background-color: #eee; /* Default option background */
+            color: #333;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .answer-option:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+        }
+
+        .answer-option.correct {
+            background-color: #A5D6A7; /* Light Green */
+            border-color: #4CAF50; /* Green */
+            color: #1B5E20; /* Dark Green */
+            animation: pulse-correct 0.5s ease-in-out 2; /* Pulse animation */
+        }
+
+         .answer-option.incorrect {
+            background-color: #FFCDD2; /* Light Red */
+            border-color: #F44336; /* Red */
+            color: #B71C1C; /* Dark Red */
+            animation: shake-incorrect 0.5s ease-in-out; /* Shake animation */
+         }
+
+        .feedback {
+            font-size: 1.8em; /* Larger feedback text */
+            min-height: 1.8em; /* Reserve space */
+            margin-top: 15px; /* More space */
+            font-weight: bold;
+        }
+
+        .feedback.correct {
+            color: #4CAF50; /* Green */
+        }
+
+        .feedback.incorrect {
+            color: #F44336; /* Red */
+        }
+
+
+        .score-timer {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 30px; /* More space */
+            font-size: 1.3em; /* Larger score/timer */
+            font-weight: bold;
+        }
+
+        .score-timer div {
+            padding: 12px 20px; /* Larger padding */
+            border-radius: 10px;
+            background-color: rgba(255, 255, 255, 0.15); /* Slightly more opaque */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .instagram-link {
+            display: inline-block; /* Use inline-block for better centering if needed */
+            margin-top: 35px; /* More space */
+            font-size: 1.2em;
+            color: inherit;
+            text-decoration: none;
+            transition: color 0.3s ease, transform 0.2s ease;
+            font-weight: bold;
+        }
+
+        .instagram-link:hover {
+            color: #E1306C; /* Instagram pink */
+            transform: translateY(-2px);
+        }
+
+         .instagram-link i {
+            margin-right: 8px;
+         }
+
+
+        /* Message Box */
+        .message-box {
+            position: fixed; /* Use fixed for full screen overlay */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7); /* Darker overlay */
+            display: flex; /* Use flexbox for centering */
+            justify-content: center;
+            align-items: center;
+            z-index: 100; /* Ensure it's on top */
+            display: none; /* Hidden by default */
+            animation: fade-in 0.3s ease-out; /* Fade in animation */
+        }
+
+        .message-box-content {
+            background-color: #fff;
+            color: #333;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            font-size: 1.8em;
+            max-width: 90%;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            animation: scale-up 0.3s ease-out; /* Scale up animation */
+        }
+
+        .message-box button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 1.2em;
+            background-color: #4CAF50; /* Green OK button */
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .message-box button:hover {
+            background-color: #388E3C; /* Darker Green */
+        }
+
+        /* --- Animations --- */
+        @keyframes pulse-correct {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes shake-incorrect {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+
+        @keyframes fade-in {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+
+        @keyframes scale-up {
+            0% { transform: scale(0.8); }
+            100% { transform: scale(1); }
+        }
+
+
+        /* --- Design 1: Playful & Bright (Enhanced) --- */
+        body.design1 {
+            background: linear-gradient(to bottom right, #FFD1DC, #AEC6CF); /* Softer, playful gradient */
+            color: #333;
+        }
+
+        .design1 .game-container {
+            background-color: rgba(255, 255, 255, 0.95); /* More opaque */
+            border: 5px dashed #FF69B4; /* Pink dashed border */
+        }
+
+        .design1 h1 {
+            color: #FF69B4; /* Hot Pink */
+        }
+
+         .design1 .wheel {
+            background: conic-gradient(#FFD1DC 0% 10%, #AEC6CF 10% 20%, #FFB347 20% 30%, #77DD77 30% 40%, #8369CF 40% 50%, #FF69B4 50% 60%, #FDFD96 60% 70%, #87CEEB 70% 80%, #CFCFC4 80% 90%, #FFDAB9 90% 100%); /* Playful gradient */
+         }
+
+         .design1 .wheel-segment {
+            color: #333; /* Darker text on lighter gradient */
+            text-shadow: none; /* Remove shadow */
+         }
+
+
+        .design1 button {
+            background: linear-gradient(to bottom, #FFD700, #FFA500); /* Gold/Orange gradient */
+            color: #333;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .design1 .problem-area {
+            color: #333;
+        }
+
+        .design1 .answer-option {
+            background-color: #FFFACD; /* Lemon Chiffon */
+            color: #333;
+            border: 3px solid #FFD700; /* Gold border */
+        }
+
+        .design1 .answer-option:hover {
+             background-color: #FFD700; /* Gold */
+             color: #fff;
+        }
+
+        .design1 .score-timer div {
+            background-color: #E1BEE7; /* Light Purple */
+            color: #4A148C; /* Dark Purple */
+        }
+
+        .design1 .instagram-link {
+            color: #FF69B4; /* Hot Pink */
+        }
+
+        /* --- Design 2: Space Adventure (Enhanced) --- */
+        body.design2 {
+            background: radial-gradient(circle at top left, #3a1c71, #d76d77, #ffaf7b); /* Cosmic gradient */
+            color: #eee;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .design2 .game-container {
+            background-color: rgba(255, 255, 255, 0.08); /* More transparent */
+            border: 2px solid rgba(0, 188, 212, 0.5); /* Cyan border */
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .design2 h1 {
+            color: #00BCD4; /* Cyan */
+            text-shadow: 0 0 10px rgba(0, 188, 212, 0.8); /* Glow effect */
+        }
+
+        .design2 .wheel {
+             background: conic-gradient(#3F51B5 0% 20%, #673AB7 20% 40%, #00BCD4 40% 60%, #FF4081 60% 80%, #8BC34A 80% 100%); /* Spacey gradient */
+             border: 8px solid rgba(0, 188, 212, 0.5);
+        }
+
+        .design2 .wheel-segment {
+             color: #fff;
+             text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+        }
+
+
+        .design2 button {
+            background: linear-gradient(to bottom, #FF4081, #F50057); /* Pink gradient */
+            color: white;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+        }
+
+        .design2 .problem-area {
+            color: #fff;
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+        }
+
+        .design2 .answer-option {
+            background-color: rgba(255, 255, 255, 0.1); /* Transparent white */
+            color: #fff;
+            border: 2px solid rgba(0, 188, 212, 0.5);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+         .design2 .answer-option:hover {
+             background-color: rgba(0, 188, 212, 0.3); /* Cyan hover */
+             border-color: #00BCD4;
+         }
+
+        .design2 .score-timer div {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .design2 .instagram-link {
+            color: #FF4081; /* Pink Accent */
+            text-shadow: 0 0 5px rgba(255, 64, 129, 0.8);
+        }
+
+        /* --- Design 3: Chalkboard Fun (Enhanced) --- */
+        body.design3 {
+            background-color: #2E8B57; /* Sea Green - chalkboard color */
+            color: #fff;
+            font-family: 'Permanent Marker', cursive;
+        }
+
+        .design3 .game-container {
+            background-color: rgba(0, 0, 0, 0.4); /* Slightly more opaque */
+            border: 6px dashed #fff; /* Thicker chalk border */
+            box-shadow: none; /* No box shadow */
+        }
+
+        .design3 h1 {
+            color: #FFFF00; /* Yellow - chalk color */
+            text-shadow: 3px 3px #000; /* Stronger chalk shadow */
+        }
+
+        .design3 .wheel {
+            background-color: #8B4513; /* Saddle Brown - wood frame */
+            border: 6px solid #D2B48C; /* Thicker Tan - wood color */
+             background: conic-gradient(rgba(255, 255, 255, 0.1) 0% 10%, rgba(255, 255, 255, 0.15) 10% 20%, rgba(255, 255, 255, 0.1) 20% 30%, rgba(255, 255, 255, 0.15) 30% 40%, rgba(255, 255, 255, 0.1) 40% 50%, rgba(255, 255, 255, 0.15) 50% 60%, rgba(255, 255, 255, 0.1) 60% 70%, rgba(255, 255, 255, 0.15) 70% 80%, rgba(255, 255, 255, 0.1) 80% 90%, rgba(255, 255, 255, 0.15) 90% 100%); /* Subtle chalk gradient */
+        }
+
+         .design3 .wheel-segment {
+            color: #fff;
+            text-shadow: 1px 1px #000;
+         }
+
+
+        .design3 button {
+            background-color: #fff;
+            color: #2E8B57; /* Sea Green */
+            font-family: 'Permanent Marker', cursive;
+            box-shadow: none;
+            border: 3px solid #2E8B57; /* Thicker border */
+        }
+
+        .design3 button:hover {
+            background-color: #eee;
+        }
+
+        .design3 .problem-area {
+            color: #fff;
+            text-shadow: 2px 2px #000; /* Stronger shadow */
+        }
+
+        .design3 .answer-option {
+            background-color: rgba(255, 255, 255, 0.15); /* More transparent */
+            color: #fff;
+            border: 3px dashed rgba(255, 255, 255, 0.7); /* Chalk dashed border */
+            box-shadow: none;
+        }
+
+         .design3 .answer-option:hover {
+             background-color: rgba(255, 255, 255, 0.3);
+         }
+
+
+        .design3 .score-timer div {
+            background-color: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            border: 3px dashed rgba(255, 255, 255, 0.7);
+            font-family: sans-serif;
+        }
+
+        .design3 .instagram-link {
+            color: #FFFF00;
+            text-shadow: 2px 2px #000;
+        }
+
+         /* Responsive adjustments */
+        @media (max-width: 600px) { /* Adjust breakpoint */
+            .game-container {
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+
+            .wheel-container {
+                width: 220px;
+                height: 220px;
+            }
+
+            .wheel-segment {
+                font-size: 1.1em;
+            }
+
+            button {
+                padding: 12px 25px;
+                font-size: 1.1em;
+            }
+
+            .problem-area {
+                font-size: 1.6em;
+            }
+
+             .answer-options {
+                gap: 10px; /* Smaller gap */
+             }
+
+            .answer-option {
+                padding: 10px 20px;
+                font-size: 1.2em;
+            }
+
+            .feedback {
+                font-size: 1.4em;
+            }
+
+            .score-timer {
+                font-size: 1.1em;
+            }
+
+            .instagram-link {
+                font-size: 1em;
+            }
+
+            .message-box-content {
+                font-size: 1.5em;
+                padding: 20px;
+            }
+        }
+
+
+    </style>
+</head>
+<body class="design1"> <div class="game-container">
+        <h1>Spin the Wheel!</h1>
+
+        <div class="wheel-container">
+            <div class="wheel" id="wheel">
+                </div>
+            <div class="wheel-pointer"></div>
+        </div>
+
+        <button id="spinButton">Spin!</button>
+
+        <div class="problem-area" id="problemArea"></div>
+
+        <div class="answer-options" id="answerOptions">
+            </div>
+
+
+        <div class="feedback" id="feedback"></div>
+
+        <div class="score-timer">
+            <div>Score: <span id="score">0</span></div>
+            <div>Turns: <span id="turns">0</span></div>
+            <div>Time: <span id="timer">0</span>s</div>
+        </div>
+
+        <a href="https://www.instagram.com/saleh__zeer/" class="instagram-link" target="_blank">
+            <i class="fab fa-instagram"></i> Visit ABC Academy on Instagram
+        </a>
+
+        <div class="message-box" id="messageBox">
+            <div class="message-box-content">
+                <p id="messageText"></p>
+                <button id="messageBoxButton">OK</button>
+            </div>
+        </div>
+
+    </div>
+
+    <audio id="spinSound" src="https://www.soundjay.com/mechanical/sounds/slot-machine-spin-01.mp3" preload="auto"></audio>
+    <audio id="winSound" src="https://www.soundjay.com/human/sounds/cheering-01.mp3" preload="auto"></audio>
+    <audio id="loseSound" src="https://www.soundjay.com/misc/sounds/fail-trombone-01.mp3" preload="auto"></audio>
+    <audio id="clickSound" src="https://www.soundjay.com/button/sounds/button-click-01.mp3" preload="auto"></audio>
+
+
+    <script>
+        // --- Game Configuration ---
+        const tables = [5, 6, 7]; // Multiplication tables to use
+        const numbersToMultiply = Array.from({ length: 10 }, (_, i) => i + 1); // Numbers 1-10
+        const totalTurnsForScoreDisplay = 10; // Display score every X turns
+        const spinDuration = 6000; // milliseconds - Increased spin duration
+        // segmentColors array is less relevant now with conic gradient, but can be used for text color if needed
+        const segmentColors = ['#FFD1DC', '#AEC6CF', '#FFB347', '#77DD77', '#8369CF', '#FF69B4', '#FDFD96', '#87CEEB', '#CFCFC4', '#FFDAB9'];
+
+
+        // --- Game State ---
+        let currentProblem = {};
+        let score = 0;
+        let turns = 0;
+        let timerInterval;
+        let timeElapsed = 0;
+        let isSpinning = false;
+        let currentDesign = 'design1'; // Set the initial design here ('design1', 'design2', or 'design3')
+
+
+        // --- DOM Elements ---
+        const wheel = document.getElementById('wheel');
+        const spinButton = document.getElementById('spinButton');
+        const problemArea = document.getElementById('problemArea');
+        const answerOptionsDiv = document.getElementById('answerOptions'); // Get the answer options container
+        const feedback = document.getElementById('feedback');
+        const scoreSpan = document.getElementById('score');
+        const turnsSpan = document.getElementById('turns');
+        const timerSpan = document.getElementById('timer');
+        const spinSound = document.getElementById('spinSound');
+        const winSound = document.getElementById('winSound');
+        const loseSound = document.getElementById('loseSound');
+        const clickSound = document.getElementById('clickSound'); // Get the new click sound element
+        const messageBox = document.getElementById('messageBox');
+        const messageText = document.getElementById('messageText');
+        const messageBoxButton = document.getElementById('messageBoxButton');
+        const body = document.body;
+
+        // --- Initialize Game ---
+        function initGame() {
+            generateWheelSegments();
+            spinButton.addEventListener('click', startSpin);
+            messageBoxButton.addEventListener('click', hideMessageBox);
+            setDesign(currentDesign); // Apply initial design
+             // Add event listener to the parent container for answer options
+            answerOptionsDiv.addEventListener('click', handleAnswerClick);
+        }
+
+        // --- Set Design ---
+        function setDesign(designClass) {
+            body.classList.remove('design1', 'design2', 'design3'); // Remove existing design classes
+            body.classList.add(designClass); // Add the selected design class
+            // Regenerate wheel segments to apply design-specific colors/styles
+            generateWheelSegments();
+        }
+
+
+        // --- Generate Wheel Segments ---
+        function generateWheelSegments() {
+            wheel.innerHTML = ''; // Clear existing segments
+            const totalSegments = tables.length * numbersToMultiply.length;
+            const segmentAngle = 360 / totalSegments;
+            let currentAngle = 0;
+
+            tables.forEach(table => {
+                numbersToMultiply.forEach(number => {
+                    const segment = document.createElement('div');
+                    segment.classList.add('wheel-segment');
+                    // Adjust transform to position text correctly over the gradient
+                    segment.style.transform = `rotate(${currentAngle + segmentAngle / 2}deg)`; // Center text in segment angle
+                    segment.style.transformOrigin = 'center'; // Rotate around center
+
+                     // Create a container for the text
+                    const textContainer = document.createElement('div');
+                    textContainer.style.transform = `rotate(-${currentAngle + segmentAngle / 2}deg)`; // Counter-rotate text
+                    textContainer.style.position = 'absolute';
+                    textContainer.style.width = '100%';
+                    textContainer.style.textAlign = 'center';
+                    textContainer.textContent = `${table} x ${number}`;
+                    textContainer.style.color = '#fff'; // Default text color on wheel
+                    textContainer.style.textShadow = '1px 1px 2px rgba(0,0,0,0.5)';
+
+
+                    segment.appendChild(textContainer);
+                    wheel.appendChild(segment);
+
+                    currentAngle += segmentAngle;
+                });
+            });
+        }
+
+        // --- Start Spin Animation ---
+        function startSpin() {
+            if (isSpinning) return;
+
+            isSpinning = true;
+            spinButton.disabled = true;
+            answerOptionsDiv.innerHTML = ''; // Clear previous answer options
+            feedback.textContent = '';
+            problemArea.textContent = ''; // Clear previous problem
+
+            spinSound.currentTime = 0; // Rewind sound
+            spinSound.play();
+
+            // Calculate a random winning segment
+            const totalSegments = tables.length * numbersToMultiply.length;
+            const winningSegmentIndex = Math.floor(Math.random() * totalSegments);
+            const segmentAngle = 360 / totalSegments;
+             // Target a position within the winning segment, plus full rotations
+            const targetAngle = (winningSegmentIndex * segmentAngle) + (segmentAngle / 2) + (360 * 8); // Spin at least 8 full rotations (increased)
+
+
+            // Apply the spin animation
+            wheel.style.transition = `transform ${spinDuration / 1000}s cubic-bezier(0.25, 0.1, 0.25, 1)`;
+            wheel.style.transform = `rotate(${targetAngle}deg)`;
+
+            // After the spin finishes
+            setTimeout(() => {
+                stopSpin(winningSegmentIndex);
+            }, spinDuration);
+        }
+
+        // --- Stop Spin and Present Problem ---
+        function stopSpin(winningSegmentIndex) {
+            isSpinning = false;
+            spinButton.disabled = false;
+
+            // Calculate the actual problem based on the winning segment index
+            const totalSegmentsPerTable = numbersToMultiply.length;
+            const tableIndex = Math.floor(winningSegmentIndex / totalSegmentsPerTable);
+            const numberIndex = winningSegmentIndex % totalSegmentsPerTable;
+
+            const num1 = tables[tableIndex];
+            const num2 = numbersToMultiply[numberIndex];
+            const correctAnswer = num1 * num2;
+
+            currentProblem = { num1, num2, correctAnswer };
+
+            problemArea.textContent = `${num1} x ${num2} = ?`;
+
+            // Generate and display answer options
+            generateAnswerOptions(correctAnswer);
+
+            // Start the timer
+            startTimer();
+        }
+
+        // --- Generate Answer Options ---
+        function generateAnswerOptions(correctAnswer) {
+            const options = [correctAnswer];
+            const minAnswer = Math.min(...tables) * Math.min(...numbersToMultiply);
+            const maxAnswer = Math.max(...tables) * Math.max(...numbersToMultiply);
+
+            // Generate incorrect options
+            while (options.length < 4) { // Generate 3 incorrect options
+                let incorrectAnswer;
+                // Try to generate plausible incorrect answers (close to correct, or from other tables)
+                if (Math.random() < 0.7) { // 70% chance of a 'close' incorrect answer
+                    const offset = Math.floor(Math.random() * 10) - 5; // -5 to +4 difference
+                    incorrectAnswer = correctAnswer + offset;
+                } else { // 30% chance of a more random incorrect answer
+                     const randomTable = tables[Math.floor(Math.random() * tables.length)];
+                     const randomNumber = numbersToMultiply[Math.floor(Math.random() * numbersToMultiply.length)];
+                     incorrectAnswer = randomTable * randomNumber;
+                }
+
+
+                // Ensure the incorrect answer is within a reasonable range and not the correct answer
+                if (incorrectAnswer > 0 && incorrectAnswer !== correctAnswer && !options.includes(incorrectAnswer)) {
+                    options.push(incorrectAnswer);
+                }
+            }
+
+            // Shuffle options
+            options.sort(() => Math.random() - 0.5);
+
+            // Display options
+            answerOptionsDiv.innerHTML = ''; // Clear previous options
+            options.forEach(option => {
+                const optionElement = document.createElement('div');
+                optionElement.classList.add('answer-option');
+                optionElement.textContent = option;
+                optionElement.dataset.answer = option; // Store the answer value
+                answerOptionsDiv.appendChild(optionElement);
+            });
+        }
+
+
+        // --- Handle Answer Click ---
+        function handleAnswerClick(event) {
+            // Check if the clicked element is an answer option
+            if (event.target.classList.contains('answer-option')) {
+                 // Play click sound
+                clickSound.currentTime = 0;
+                clickSound.play();
+
+                 // Disable all options after one is clicked
+                Array.from(answerOptionsDiv.children).forEach(option => option.style.pointerEvents = 'none');
+
+                const selectedAnswer = parseInt(event.target.dataset.answer, 10);
+                checkAnswer(selectedAnswer, event.target);
+            }
+        }
+
+
+        // --- Check Answer ---
+        function checkAnswer(userAnswer, selectedOptionElement) {
+            turns++;
+            turnsSpan.textContent = turns;
+            stopTimer(); // Stop the timer once an answer is submitted
+
+            if (userAnswer === currentProblem.correctAnswer) {
+                score++;
+                scoreSpan.textContent = score;
+                feedback.textContent = 'Correct! 🎉'; // Correct emoji
+                feedback.classList.remove('incorrect');
+                feedback.classList.add('correct');
+                selectedOptionElement.classList.add('correct'); // Highlight correct option
+                winSound.currentTime = 0; // Play win sound
+                winSound.play();
+            } else {
+                feedback.textContent = `Incorrect. The answer was ${currentProblem.correctAnswer} 😔`; // Incorrect emoji
+                feedback.classList.remove('correct');
+                feedback.classList.add('incorrect');
+                selectedOptionElement.classList.add('incorrect'); // Highlight incorrect option
+                 // Find and highlight the correct answer
+                Array.from(answerOptionsDiv.children).forEach(option => {
+                    if (parseInt(option.dataset.answer, 10) === currentProblem.correctAnswer) {
+                        option.classList.add('correct');
+                    }
+                });
+                loseSound.currentTime = 0; // Play lose sound
+                loseSound.play();
+            }
+
+            // Display score every 10 turns after a short delay to see feedback
+            setTimeout(() => {
+                if (turns % totalTurnsForScoreDisplay === 0) {
+                    showMessageBox(`You've completed ${totalTurnsForScoreDisplay} turns! Your score is ${score}/${turns}.`);
+                }
+                 // Reset for the next turn after feedback is shown
+                resetForNextTurn();
+            }, 2000); // Delay the reset
+        }
+
+        // --- Reset for Next Turn ---
+        function resetForNextTurn() {
+            answerOptionsDiv.innerHTML = ''; // Clear answer options
+            feedback.textContent = '';
+            feedback.classList.remove('correct', 'incorrect');
+            problemArea.textContent = ''; // Clear problem
+            timeElapsed = 0; // Reset timer
+            timerSpan.textContent = timeElapsed;
+             // Re-enable pointer events on answer options container for the next round
+            answerOptionsDiv.style.pointerEvents = 'auto';
+        }
+
+
+        // --- Timer Functions ---
+        function startTimer() {
+            timeElapsed = 0;
+            timerSpan.textContent = timeElapsed;
+            timerInterval = setInterval(() => {
+                timeElapsed++;
+                timerSpan.textContent = timeElapsed;
+            }, 1000);
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+        }
+
+        // --- Message Box Functions ---
+        function showMessageBox(message) {
+            messageText.textContent = message;
+            messageBox.style.display = 'flex'; // Use flex to center content
+        }
+
+        function hideMessageBox() {
+            messageBox.style.display = 'none';
+        }
+
+
+        // --- Initialize the game when the window loads ---
+        window.onload = initGame;
+
+    </script>
+</body>
+</html>
