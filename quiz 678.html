@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Factor Finder Challenge - Enhanced!</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1f2937; /* bg-gray-800 */
+            color: #f3f4f6; /* text-gray-100 */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 1rem;
+            box-sizing: border-box;
+            overflow-x: hidden; /* Prevent horizontal scroll from balloons */
+        }
+        .game-font {
+            font-family: 'Press Start 2P', cursive;
+        }
+        .game-container {
+            background-color: #374151; /* bg-gray-700 */
+            padding: 1.5rem; /* p-6 */
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            width: 100%;
+            max-width: 600px;
+            position: relative; /* For balloon container positioning */
+            overflow: hidden; /* Keep balloons contained visually if needed, though they float up */
+        }
+        .btn {
+            font-family: 'Press Start 2P', cursive;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem; /* rounded-lg */
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.1s;
+            border: none;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+        }
+        .btn-primary {
+            background-color: #3b82f6; /* bg-blue-500 */
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #2563eb; /* bg-blue-600 */
+        }
+        .btn-primary:active {
+            transform: scale(0.95);
+        }
+        .btn-secondary {
+            background-color: #10b981; /* bg-emerald-500 */
+            color: white;
+        }
+        .btn-secondary:hover {
+            background-color: #059669; /* bg-emerald-600 */
+        }
+        .btn-secondary:active {
+            transform: scale(0.95);
+        }
+         .btn-danger {
+            background-color: #ef4444; /* bg-red-500 */
+            color: white;
+        }
+        .btn-danger:hover {
+            background-color: #dc2626; /* bg-red-600 */
+        }
+        .btn-danger:active {
+            transform: scale(0.95);
+        }
+        input[type="number"] {
+            font-family: 'Press Start 2P', cursive;
+            padding: 0.5rem;
+            border-radius: 0.375rem; /* rounded-md */
+            border: 1px solid #4b5563; /* border-gray-600 */
+            background-color: #4b5563; /* bg-gray-600 */
+            color: #f3f4f6; /* text-gray-100 */
+            width: 60px;
+            text-align: center;
+            margin: 0 0.25rem; /* mx-1 */
+        }
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+        .problem-text {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.9rem; /* Adjusted for better fit on mobile */
+            color: #d1d5db; /* text-gray-300 */
+        }
+        .feedback-icon {
+            font-size: 1.5rem; /* text-2xl */
+            width: 30px; /* Ensure consistent width */
+            text-align: center;
+        }
+        #message-box {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 0.75rem 1.25rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            z-index: 1000;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+        .message-success { background-color: #10b981; color: white; }
+        .message-error { background-color: #ef4444; color: white; }
+        .message-info { background-color: #3b82f6; color: white; }
+        .message-warning { background-color: #f59e0b; color: white; } /* Amber 500 */
+
+        #timer-display {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 1.25rem;
+            color: #fcd34d; /* yellow-300 */
+            margin-bottom: 0.75rem;
+        }
+
+        .balloon-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* Allow clicks to pass through */
+            overflow: hidden;
+            z-index: 500;
+        }
+
+        .balloon {
+            position: absolute;
+            bottom: -100px; /* Start off-screen */
+            width: 50px;
+            height: 70px;
+            background-color: red;
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%; /* Balloon shape */
+            opacity: 0.8;
+            animation: floatUp 10s linear infinite;
+        }
+
+        .balloon::after { /* Balloon string */
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 20px;
+            background-color: #6b7280; /* gray-500 */
+        }
+
+        @keyframes floatUp {
+            0% {
+                bottom: -100px;
+                transform: translateX(0) rotate(0deg);
+            }
+            25% {
+                transform: translateX(20px) rotate(5deg);
+            }
+            50% {
+                transform: translateX(-20px) rotate(-5deg);
+            }
+            75% {
+                transform: translateX(10px) rotate(3deg);
+            }
+            100% {
+                bottom: 110%; /* Float past the top */
+                transform: translateX(0) rotate(0deg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container my-4">
+        <div id="balloon-container"></div>
+        <h1 class="game-font text-3xl text-center mb-2 text-yellow-400">Factor Finder</h1>
+        <h2 class="game-font text-xl text-center mb-4 text-yellow-300">Challenge!</h2>
+        
+        <div id="timer-display" class="text-center">Time: 01:30</div>
+
+        <p class="text-center mb-4 text-gray-300 text-sm">
+            Fill in the missing numbers. Focus on the <strong>6, 7, and 8</strong> times tables. <br>
+            <strong>Rule:</strong> If the blank is a factor multiplied by 6, 7, or 8, your answer cannot be 2 or 4.
+        </p>
+
+        <div id="game-board" class="space-y-3 mb-6">
+            </div>
+
+        <div class="flex flex-col sm:flex-row justify-center space-y-2 sm:space-y-0 sm:space-x-4 mb-6">
+            <button id="reset-game" class="btn btn-danger">Reset Game</button>
+            <button id="show-answers" class="btn btn-secondary">Show Answers</button>
+        </div>
+
+        <div class="text-center">
+            <p class="game-font text-lg text-yellow-400">Score: <span id="score">0</span></p>
+        </div>
+    </div>
+
+    <div id="message-box" class="hidden"></div>
+
+    <script>
+        const questions = [
+            // Keeping the same questions as before for consistency
+            { id: 1, p1: 8, operator: '×', p2: '?', equals: '=', product: 56, solve: 'p2', correctAnswer: 7, constraintApplies: true },
+            { id: 2, p1: '?', operator: '×', p2: 9, equals: '=', product: 54, solve: 'p1', correctAnswer: 6, constraintApplies: false },
+            { id: 3, p1: 7, operator: '×', p2: 6, equals: '=', product: '?', solve: 'product', correctAnswer: 42, constraintApplies: false },
+            { id: 4, p1: 6, operator: '×', p2: '?', equals: '=', product: 18, solve: 'p2', correctAnswer: 3, constraintApplies: true },
+            { id: 5, p1: '?', operator: '×', p2: 11, equals: '=', product: 77, solve: 'p1', correctAnswer: 7, constraintApplies: false },
+            { id: 6, p1: 8, operator: '×', p2: 5, equals: '=', product: '?', solve: 'product', correctAnswer: 40, constraintApplies: false },
+            { id: 7, p1: 7, operator: '×', p2: '?', equals: '=', product: 63, solve: 'p2', correctAnswer: 9, constraintApplies: true },
+            { id: 8, p1: '?', operator: '×', p2: 3, equals: '=', product: 24, solve: 'p1', correctAnswer: 8, constraintApplies: false },
+            { id: 9, p1: 6, operator: '×', p2: 10, equals: '=', product: '?', solve: 'product', correctAnswer: 60, constraintApplies: false },
+            { id: 10, p1: '?', operator: '×', p2: 7, equals: '=', product: 49, solve: 'p1', correctAnswer: 7, constraintApplies: false }
+        ];
+
+        let score = 0;
+        let answeredCorrectlyFlags = [];
+        let gameTimerInterval;
+        let timeLeft = 90; // 90 seconds for the timer
+        let gameActive = true;
+
+        const gameBoard = document.getElementById('game-board');
+        const scoreDisplay = document.getElementById('score');
+        const timerDisplay = document.getElementById('timer-display');
+        const resetGameButton = document.getElementById('reset-game');
+        const showAnswersButton = document.getElementById('show-answers');
+        const messageBox = document.getElementById('message-box');
+        const balloonContainer = document.getElementById('balloon-container');
+
+        // Sound Synthesis using Tone.js
+        let correctSound, incorrectSound, winSound, timerEndSound;
+        
+        // Initialize sounds after user interaction (e.g., first click)
+        function initSounds() {
+            if (Tone.context.state !== 'running') {
+                Tone.start(); // Request to start audio context
+            }
+            correctSound = new Tone.Synth({
+                oscillator: { type: 'sine' },
+                envelope: { attack: 0.01, decay: 0.1, sustain: 0.05, release: 0.2 }
+            }).toDestination();
+            
+            incorrectSound = new Tone.Synth({
+                oscillator: { type: 'square' },
+                envelope: { attack: 0.01, decay: 0.2, sustain: 0, release: 0.2 }
+            }).toDestination();
+
+            winSound = new Tone.PolySynth(Tone.Synth, {
+                oscillator: { type: "triangle" },
+                envelope: { attack: 0.05, decay: 0.2, sustain: 0.1, release: 0.3 }
+            }).toDestination();
+
+            timerEndSound = new Tone.Synth({
+                oscillator: { type: 'sawtooth' },
+                envelope: { attack: 0.01, decay: 0.3, sustain: 0, release: 0.2 }
+            }).toDestination();
+        }
+        // Call initSounds on first interaction (e.g. body click or first button click)
+        // For simplicity, we'll try to initialize it early, but it's best practice to tie to user gesture.
+        document.body.addEventListener('click', initSounds, { once: true });
+
+
+        function playCorrectSound() {
+            if (correctSound && Tone.context.state === 'running') {
+                correctSound.triggerAttackRelease('C5', '8n', Tone.now());
+                correctSound.triggerAttackRelease('G5', '8n', Tone.now() + 0.15);
+            }
+        }
+
+        function playIncorrectSound() {
+            if (incorrectSound && Tone.context.state === 'running') {
+                incorrectSound.triggerAttackRelease('C3', '4n', Tone.now());
+            }
+        }
+
+        function playWinSound() {
+            if (winSound && Tone.context.state === 'running') {
+                const now = Tone.now();
+                winSound.triggerAttackRelease(['C4', 'E4', 'G4'], '8n', now);
+                winSound.triggerAttackRelease(['D4', 'F#4', 'A4'], '8n', now + 0.2);
+                winSound.triggerAttackRelease(['E4', 'G4', 'B4'], '4n', now + 0.4);
+            }
+        }
+        
+        function playTimerEndSound() {
+            if (timerEndSound && Tone.context.state === 'running') {
+                timerEndSound.triggerAttackRelease('A2', '2n', Tone.now());
+            }
+        }
+
+        function showMessage(text, type = 'info', duration = 3000) {
+            messageBox.textContent = text;
+            messageBox.className = ''; 
+            messageBox.classList.add('fixed', 'bottom-5', 'left-1/2', '-translate-x-1/2', 'p-3', 'rounded-lg', 'shadow-lg', 'text-white', 'text-sm', 'game-font', `message-${type}`);
+            messageBox.classList.remove('hidden');
+            setTimeout(() => {
+                messageBox.classList.add('hidden');
+            }, duration);
+        }
+        
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            return `Time: ${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+        }
+
+        function startTimer() {
+            timeLeft = 90;
+            gameActive = true;
+            timerDisplay.textContent = formatTime(timeLeft);
+            clearInterval(gameTimerInterval); // Clear any existing timer
+
+            gameTimerInterval = setInterval(() => {
+                timeLeft--;
+                timerDisplay.textContent = formatTime(timeLeft);
+                if (timeLeft <= 0) {
+                    clearInterval(gameTimerInterval);
+                    endGame("Time's up! ⏰");
+                }
+            }, 1000);
+        }
+
+        function createBalloons(count = 10) {
+            balloonContainer.innerHTML = ''; // Clear old balloons
+            const colors = ['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899']; // Red, Blue, Emerald, Amber, Violet, Pink
+            for (let i = 0; i < count; i++) {
+                const balloon = document.createElement('div');
+                balloon.classList.add('balloon');
+                balloon.style.left = `${Math.random() * 90}%`; // Random horizontal position
+                balloon.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                balloon.style.animationDelay = `${Math.random() * 5}s`; // Stagger start times
+                balloon.style.animationDuration = `${8 + Math.random() * 5}s`; // Vary float speed
+                balloonContainer.appendChild(balloon);
+            }
+        }
+        
+        function endGame(message) {
+            gameActive = false;
+            disableAllInputs();
+            playTimerEndSound();
+            showMessage(`${message} Final Score: ${score} 🎉`, 'warning', 7000);
+            if (score > questions.length / 2) { // Only show balloons if score is decent
+                 createBalloons();
+                 playWinSound(); // Also play win sound if score is good on time up
+            }
+        }
+
+        function disableAllInputs() {
+            document.querySelectorAll('.input-ans').forEach(input => input.disabled = true);
+            document.querySelectorAll('#game-board button').forEach(button => button.disabled = true);
+        }
+
+
+        function renderGame() {
+            gameBoard.innerHTML = ''; 
+            answeredCorrectlyFlags = Array(questions.length).fill(false); 
+            gameActive = true;
+
+            questions.forEach(q => {
+                const questionRow = document.createElement('div');
+                questionRow.className = 'flex items-center justify-between bg-gray-800 p-3 rounded-lg shadow';
+
+                const problemDiv = document.createElement('div');
+                problemDiv.className = 'problem-text flex-grow';
+
+                let problemHTML = '';
+                const inputField = `<input type="number" id="ans-${q.id}" class="input-ans w-16 text-center" data-question-id="${q.id}">`;
+
+                if (q.solve === 'p1') {
+                    problemHTML = `${inputField} ${q.operator} ${q.p2} ${q.equals} ${q.product}`;
+                } else if (q.solve === 'p2') {
+                    problemHTML = `${q.p1} ${q.operator} ${inputField} ${q.equals} ${q.product}`;
+                } else { 
+                    problemHTML = `${q.p1} ${q.operator} ${q.p2} ${q.equals} ${inputField}`;
+                }
+                problemDiv.innerHTML = problemHTML;
+
+                const checkButton = document.createElement('button');
+                checkButton.textContent = 'Check';
+                checkButton.className = 'btn btn-primary ml-3';
+                checkButton.onclick = () => checkAnswer(q.id);
+                
+                const feedbackSpan = document.createElement('span');
+                feedbackSpan.id = `feedback-${q.id}`;
+                feedbackSpan.className = 'feedback-icon ml-3';
+
+                questionRow.appendChild(problemDiv);
+                questionRow.appendChild(checkButton);
+                questionRow.appendChild(feedbackSpan);
+                gameBoard.appendChild(questionRow);
+
+                const inputElement = questionRow.querySelector(`#ans-${q.id}`);
+                if (inputElement) {
+                    inputElement.addEventListener('keypress', function(event) {
+                        if (event.key === 'Enter') {
+                            event.preventDefault(); 
+                            checkAnswer(q.id);
+                        }
+                    });
+                }
+            });
+            // Re-enable buttons that might have been disabled by endGame
+            document.querySelectorAll('#game-board button').forEach(button => button.disabled = false);
+            showAnswersButton.disabled = false; // Ensure show answers button is enabled on reset
+        }
+
+        function checkAnswer(questionId) {
+            if (!gameActive) return;
+
+            const question = questions.find(q => q.id === questionId);
+            const inputElement = document.getElementById(`ans-${question.id}`);
+            const feedbackElement = document.getElementById(`feedback-${question.id}`);
+            
+            if (!inputElement || inputElement.disabled) return; 
+
+            const userAnswer = parseInt(inputElement.value);
+
+            if (isNaN(userAnswer)) {
+                showMessage('Please enter a number.', 'error');
+                feedbackElement.textContent = '❓';
+                feedbackElement.style.color = '#facc15'; 
+                return;
+            }
+
+            if (question.constraintApplies && (userAnswer === 2 || userAnswer === 4)) {
+                showMessage('Factor cannot be 2 or 4.', 'error');
+                feedbackElement.textContent = '❌';
+                feedbackElement.style.color = '#ef4444'; 
+                inputElement.value = ''; 
+                playIncorrectSound();
+                return;
+            }
+
+            if (userAnswer === question.correctAnswer) {
+                feedbackElement.textContent = '✅';
+                feedbackElement.style.color = '#34d399'; 
+                inputElement.disabled = true; 
+                playCorrectSound();
+                
+                const questionIndex = questions.findIndex(q => q.id === questionId);
+                if (!answeredCorrectlyFlags[questionIndex]) {
+                    score++;
+                    scoreDisplay.textContent = score;
+                    answeredCorrectlyFlags[questionIndex] = true;
+                    showMessage('Correct!', 'success');
+                } else {
+                    showMessage('Already answered!', 'info');
+                }
+                
+                if (answeredCorrectlyFlags.every(flag => flag === true)) {
+                    clearInterval(gameTimerInterval); // Stop timer on win
+                    gameActive = false;
+                    disableAllInputs();
+                    showMessage(`Congratulations! 🎉 You got them all! Final Score: ${score} 🎈`, 'success', 7000);
+                    playWinSound();
+                    createBalloons(15); // More balloons for a win
+                }
+
+            } else {
+                feedbackElement.textContent = '❌';
+                feedbackElement.style.color = '#ef4444'; 
+                inputElement.value = ''; 
+                showMessage('Incorrect. Try again!', 'error');
+                playIncorrectSound();
+            }
+        }
+
+        function resetGame() {
+            initSounds(); // Ensure sounds are ready on reset if not already
+            score = 0;
+            scoreDisplay.textContent = score;
+            balloonContainer.innerHTML = ''; // Clear balloons
+            renderGame(); 
+            startTimer();
+            showMessage('Game Reset! Timer Started!', 'info');
+        }
+
+        function showAnswers() {
+            if (!gameActive && timeLeft > 0) { // If game ended due to win
+                 showMessage('Game already completed!', 'info');
+                 return;
+            }
+            clearInterval(gameTimerInterval); // Stop timer if showing answers
+            gameActive = false;
+            disableAllInputs();
+
+            questions.forEach(q => {
+                const inputElement = document.getElementById(`ans-${q.id}`);
+                const feedbackElement = document.getElementById(`feedback-${q.id}`);
+                if (inputElement) {
+                    inputElement.value = q.correctAnswer;
+                    // inputElement.disabled = true; // Already handled by disableAllInputs
+                }
+                if (feedbackElement) {
+                    feedbackElement.textContent = '💡'; 
+                    feedbackElement.style.color = '#60a5fa'; 
+                }
+            });
+            answeredCorrectlyFlags.fill(true);
+            showMessage('Answers Revealed! Game Over.', 'info');
+            // Optionally, show score even when answers are revealed
+            // scoreDisplay.textContent = score; // Score is already up-to-date
+        }
+
+        resetGameButton.addEventListener('click', resetGame);
+        showAnswersButton.addEventListener('click', showAnswers);
+
+        // Initial game setup
+        renderGame();
+        startTimer(); // Start timer on initial load
+        // Attempt to initialize sounds early, but user interaction is best.
+        // If Tone.js doesn't start, it will on the first click due to the body event listener.
+        if (typeof Tone !== 'undefined') {
+            initSounds(); 
+        } else {
+            console.error("Tone.js not loaded");
+            showMessage("Sound library error. Sounds may not play.", "error", 5000);
+        }
+
+    </script>
+</body>
+</html>
